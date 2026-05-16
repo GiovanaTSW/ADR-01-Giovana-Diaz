@@ -1,9 +1,6 @@
 # ADR-01-Giovana-Diaz
-README.md del ADR para mi proyecto de Arquitectura de Software
 
-Dressly
-
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema Dressly
+# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
 
 | Campo  | Valor |
 |--------|-------|
@@ -15,47 +12,11 @@ Dressly
 
 ## Contexto
 
-El proyecto busca resolver la pérdida de tiempo y el agobio diario al elegir un outfit, dándonos sugerencias rápidas para evitar compras innecesarias de ropa que ya tenemos o que no nos favorece. De igual manera, ayuda a elegir prendas que realmente resalten nuestras características físicas basándose en datos reales de nuestro cuerpo. Finalmente, contribuye a frenar el hiperconsumismo textil mediante la economía circular, facilitando la donación de prendas en desuso para darles un mejor propósito. 
+Actualmente, muchas personas se responden una pregunta que se realizan todos los días: ¿Qué outfit me pondré hoy?, esto puede llegar a ser cansado para algunos, pues a pesar de contar con ropa suficiente dentro de su armario, ocurre ese sentimiento de no saber qué ponerse debido a que no recuerdan las prendas que tienen y no saben cómo combinarlas, sumándole el hecho de que muchos usuarios realizan compras innecesarias desconociendo datos acerca de su propio tipo de cuerpo y colorimetría, como al no saber qué tipos de cortes y tonos les favorecen, adquiriendo prendas que terminan sin un solo uso; esto formando parte del consumo desmedido e innecesario de ropa, y acumulación de desperdicio textil que pierde la oportunidad de ser aprovechado por otros. 
 
-Para construir este sistema, contamos con restricciones de tiempo al ser un proyecto escolar para la materia de Arquitectura de Software. Además, el equipo debe enfocarse en validar la lógica del negocio (el armario, las reglas de estilo y la conexión con ONGs) antes de implementar configuraciones de red o servidores muy avanzados.
+El proyecto busca resolver la pérdida de tiempo y el agobio que sentimos al elegir un outfit, dándonos sugerencias rápidas que ya no sea un proceso cansado; por otro lado, también ayuda en poner orden en el descontrol de prendas del armario, evitando que compremos ropa casi igual a la que ya tenemos solo porque no recordamos que está ahí, de igual manera, resuelve el problema de comprar por impulsividad prendas que no nos favorecen, ayudando a elegir prendas que realmente favorezcan nuestras características físicas. Finalmente, el proyecto ayuda a resolver un problema que persiste actualmente que es el hiperconsumismo de textiles, contribuyendo a la economía circular y facilitando a donarla a quiénes la necesiten y dándole un propósito mejor a lo que ya nos ponemos.
 
----
+El proyecto va dirigido a personas que buscan una nueva forma de gestionar su guardarropa y buscan tener recomendaciones basadas en sus características físicas, así como personas comprometidas con la economía circular que requieren una vía eficiente para canalizar sus prendas en desuso.
 
-## Decisión
-
-He decidido utilizar un **Estilo Arquitectónico Monolítico basado en Capas (Capa de Presentación, Capa de Negocio y Capa de Datos)** para estructurar el backend y frontend de la aplicación. 
-
-### ¿Por qué?
-
-Elegí esta arquitectura porque nos permite organizar el código de manera muy clara y separada sin añadir una complejidad innecesaria en esta primera etapa del proyecto. 
-* **Separación de responsabilidades:** La lógica para analizar el cuerpo del usuario, organizar los outfits y gestionar los lotes de donación estará completamente separada de las pantallas de la app y de la base de datos.
-* **Facilidad de desarrollo:** Al estar todo en un solo proyecto, es mucho más sencillo y rápido de programar, probar y corregir errores, adaptándose perfectamente al tiempo que tenemos disponible para la entrega escolar.
-* **Consistencia de los datos:** Al centralizar la información en un solo sitio, es más fácil asegurar que cuando una prenda cambie su estado a "donación", se refleje inmediatamente en el inventario del usuario sin problemas de sincronización.
-
-### Alternativas consideradas
-
-| Alternativa | Por qué la descarté |
-|-------------|---------------------|
-| **Arquitectura de Microservicios** | Aunque permitiría separar el módulo de IA y el de donaciones en servidores independientes, la descarté porque añade mucha complejidad en la comunicación por red y configuración de servidores, lo cual supera el alcance actual y el tiempo del proyecto. |
-| **Arquitectura Basada en Eventos** | Se pensó para reaccionar de forma automática cuando una prenda pasa meses sin usarse, pero se descartó porque requiere herramientas adicionales de mensajería que complicarían el código en esta fase inicial de boceto. |
-| **Arquitectura Cliente-Servidor Simple (Sin capas intermedias)** | Consiste en conectar las pantallas de la app directo a la base de datos. Se descartó porque revolvería la lógica de las recomendaciones de ropa con el diseño de la app, haciendo que el código sea caótico y muy difícil de mantener si el proyecto crece. |
 
 ---
-
-## Consecuencias
-
-**✅ Lo que gano:**
-
-- **Consecuencia técnica:** El sistema se vuelve mucho más fácil de construir y mantener. Si en el futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
-- **Consecuencia sobre el proceso:** El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
-
-**⚠️ Lo que sacrifico o asumo:**
-
-- **Limitación técnica:** Al ser un monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
-- **Deuda o riesgo:** Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje (como Python), tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración del backend.
-
-## Diagrama
-
-Un boceto de cómo se estructura tu sistema.
-
-![Diagrama del sistema]( ./ruta/diagrama-nivel-1.png )
