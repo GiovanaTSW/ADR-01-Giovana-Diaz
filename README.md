@@ -32,4 +32,17 @@ Las restricciones de este proyecto académico, principalmente se cuenta con un t
 
 Implementando estos elementos sin añadir mayores complejidades de red mucho más avanzadas para el principio del proyecto.
 
+## Decisión
+
+Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura en capas para el desarrollo del proyecto.Con ello, podemos destacar que el estilo se caracteriza por organizar el sistema en capas jerárquicas, en el que cada una tiene una responsabilidad específica y se comunica con las otras capas por medio de interfaces.
+
+### ¿Por qué he optado por esta decisión?
+
+Se eligió esta arquitectura porque permite estructurar de forma clara y ordenada toda la lógica y los datos específicos que maneja el proyecto:
+
+* **Organización de los Datos:** Permite separar limpiamente los datos del Core de usuario y biometría (Usuario, Perfil físico, Regla de estilo), la Gestión de inventario (Prenda, Categoría, Temporada), la Inteligencia de vestimenta (Outfit, Ocasión) y el Módulo de economía circular (Lote de Donación, Punto de Donación) en una base de datos centralizada, facilitando que se relacionen entre sí sin problemas de sincronización.
+
+* **Procesamiento de Reglas:** La capa de negocio centralizará la lógica del sistema, permitiendo cruzar de forma eficiente la matriz lógica de "Regla de estilo" con el "Perfil físico" del usuario para generar las sugerencias rápidas de outfits.
+
+* **Límites de tiempo:** Desarrollar en capas dentro de un mismo proyecto reduce los tiempos de configuración inicial, permitiéndonos cumplir con los plazos escolares establecidos.
 
