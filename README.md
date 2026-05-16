@@ -55,3 +55,23 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 - **Arquitectura Basada en Eventos**: Se analizó para enviar notificaciones basadas en el "contador de usos" o la "fecha de última vez que se usó" una prenda, pero se descartó porque requiere implementar herramientas de mensajería (como brokers de eventos) que desviarán el enfoque principal en esta fase de boceto.
 
 - **Arquitectura de Tres Capas Simple (Sin lógica intermedia)**: Consiste en conectar la interfaz de usuario directo a la persistencia. Se descartó porque revolvería las reglas de combinación de ropa y colorimetría dentro de las pantallas, haciendo que el sistema sea desordenado y muy difícil de mantener si se añaden nuevas categorías de prendas.
+
+---
+
+## Consecuencias
+
+### Lo que gano
+
+- El sistema se vuelve mucho más fácil de construir y mantener porque si en un futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
+  
+- El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
+
+### Lo que sacrifico o asumo
+
+- Al ser una arquitectura de monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
+  
+- Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje de programación, tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración en la lógica.
+---
+
+## Diagrama
+
