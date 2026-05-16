@@ -46,3 +46,12 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 
 * **Límites de tiempo:** Desarrollar en capas dentro de un mismo proyecto reduce los tiempos de configuración inicial, permitiéndonos cumplir con los plazos escolares establecidos.
 
+---
+
+### Alternativas consideradas
+
+- **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
+
+- **Arquitectura Basada en Eventos**: Se analizó para enviar notificaciones basadas en el "contador de usos" o la "fecha de última vez que se usó" una prenda, pero se descartó porque requiere implementar herramientas de mensajería (como brokers de eventos) que desviarán el enfoque principal en esta fase de boceto.
+
+- **Arquitectura de Tres Capas Simple (Sin lógica intermedia)**: Consiste en conectar la interfaz de usuario directo a la persistencia. Se descartó porque revolvería las reglas de combinación de ropa y colorimetría dentro de las pantallas, haciendo que el sistema sea desordenado y muy difícil de mantener si se añaden nuevas categorías de prendas.
