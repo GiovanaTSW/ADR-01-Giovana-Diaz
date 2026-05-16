@@ -75,3 +75,4 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 
 ## Diagrama
 
+<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
