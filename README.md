@@ -48,7 +48,7 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 
 ---
 
-### Alternativas consideradas
+### Alternativas consideradas y la razón del por qué las descarté para el proyecto
 
 - **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
 
