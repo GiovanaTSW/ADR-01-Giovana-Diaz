@@ -20,3 +20,16 @@ El proyecto va dirigido a personas que buscan una nueva forma de gestionar su gu
 
 
 ---
+
+## Restricciones 
+
+Las restricciones de este proyecto académico, principalmente se cuenta con un tiempo limitado para la entrega y avances para el desarrollo del sistema; de igual manera, el enfoque del proyecto, Dressly, debe centrarse principalmente para la verificar de forma eficiente del flujo de los datos como:
+
+- El estilo del usuario
+- Gestión del inventario
+- Inteligencia para la vestimenta
+- El apartado para el módulo de economía circular
+
+Implementando estos elementos sin añadir mayores complejidades de red mucho más avanzadas para el principio del proyecto.
+
+
