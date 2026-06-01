@@ -1,6 +1,6 @@
-# ADR-01-Giovana-Diaz
+# ADR-02-Giovana-Diaz
 
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
+# ADR-02: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
 
 | Campo  | Valor |
 |--------|-------|
