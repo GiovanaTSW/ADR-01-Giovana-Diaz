@@ -5,7 +5,7 @@
 | Campo  | Valor |
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
-| Fecha  | 15/05/2026 |
+| Fecha  | 05/06/2026 |
 | Estado | `Propuesto` |
 
 ---
@@ -14,8 +14,18 @@
 
 Hoy en día, muchas personas se responden una pregunta que se realizan todos los días: *¿Qué outfit me pondré hoy?*, esto puede llegar a ser cansado, pues a pesar de contar con la ropa suficiente dentro de su armario, ocurre ese sentimiento de no saber qué ponerse debido a que no recuerdan las prendas con las que cuentan y no saben cómo combinarlas, sumándole el hecho de que muchos usuarios realizan compras innecesarias desconociendo datos acerca de su propio tipo de cuerpo y colorimetría, como al no saber qué tipos de cortes y tonos les favorecen, adquiriendo prendas que terminan sin un solo uso; esto formando parte del consumo desmedido e innecesario de ropa, y acumulación de desperdicio textil que pierde la oportunidad de ser aprovechado por otros.
 
+Dressly es una aplicación web desarrollada en .NET Core 10 que digitaliza el duardarropa personal mediante fotografías reales de las prendas. A partir de ese inventario, genera sugerencias automáticas de outfits basadas en colorimetría y fisonomía del usuario, y facilita la donación de prendas en desuso promoviendo la economía circular.
 
+El sistema gestiona cuatro dominios funcionales estrechamente relacionados entre sí:
 
+| Dominio | Responsabilidad |
+|--------|-------|
+| Catalogo de prendas | Registro, clasificación y seguimiento de uso del inventario textl |
+| Inteligencia de Outfits  | Generación de combinaciones según colorimetría, tipo de cuerpo y ocasión |
+| Perfil y Biometría | Tipo de cuerpo, subtono de piel y estación colorimétrica del usuario |
+| Economía Circular | `Gestión de lotes de donación y directorio de puntos de recepción (ONGs) |
+
+El proyecto es de desarrollo unipersonal en etapa académica, con el objetivo de mostrarse al público a corto plazo. La persistencia se resuelve mediante archivos JSON locales y el despliegue final se realizará sobre infrastructura AWS (instancia EC2 con almacenamiento en S3).
 
 ---
 
