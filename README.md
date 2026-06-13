@@ -78,3 +78,9 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 <img width="1324" height="1124" alt="Diagrama_Hexagonal" src="https://github.com/user-attachments/assets/9e05186d-3909-47d3-8a22-f722258489f4" />
 
 **ACTUALIZACIÓN DEL DIAGRAMA POR CAPAS A HEXAGONAL**
+
+--- 
+
+## Declaración de uso de IA
+
+Para la elaboración de este ADR se utilizó Claude (Anthropic) como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly son propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
