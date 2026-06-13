@@ -75,4 +75,6 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 
 ## Diagrama
 
-<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
+<img width="1324" height="1124" alt="Diagrama_Hexagonal" src="https://github.com/user-attachments/assets/9e05186d-3909-47d3-8a22-f722258489f4" />
+
+**ACTUALIZACIÓN DEL DIAGRAMA POR CAPAS A HEXAGONAL**
