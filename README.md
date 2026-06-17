@@ -1,6 +1,6 @@
-# ADR-01-Giovana-Diaz
+# ADR-05-Giovana-Diaz
 
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
+# ADR-05: Incorporación de una API REST en el sistema Dressly
 
 | Campo  | Valor |
 |--------|-------|
