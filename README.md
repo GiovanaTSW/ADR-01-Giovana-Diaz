@@ -1,6 +1,6 @@
-# ADR-05-Giovana-Diaz
+# ADR-01-Giovana-Diaz
 
-# ADR-05: Incorporación de una API REST en el sistema Dressly
+# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
 
 | Campo  | Valor |
 |--------|-------|
@@ -63,21 +63,19 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 ### Lo que gano
 
 - El sistema se vuelve mucho más fácil de construir y mantener porque si en un futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
-
+  
 - El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
 
 ### Lo que sacrifico o asumo
 
 - Al ser una arquitectura de monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
-
+  
 - Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje de programación, tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración en la lógica.
 ---
 
 ## Diagrama
 
-<img width="1324" height="1124" alt="Diagrama_Hexagonal" src="https://github.com/user-attachments/assets/9e05186d-3909-47d3-8a22-f722258489f4" />
-
-**ACTUALIZACIÓN DEL DIAGRAMA POR CAPAS A HEXAGONAL**
+<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
 
 --- 
 
