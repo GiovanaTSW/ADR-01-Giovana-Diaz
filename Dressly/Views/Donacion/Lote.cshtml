@@ -1,0 +1,108 @@
+﻿@model List<Dressly_MVC.Models.Prenda>
+@{
+    ViewData["Title"] = "Crear Lote de Donacion";
+    var puntos = ViewBag.Puntos as List<Dressly_MVC.Models.PuntoONG> ?? new();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="section-header mb-4">
+            <h2 class="mb-1">Crear lote de donacion</h2>
+            <p class="small" style="color:var(--slate);">Selecciona las prendas que quieres donar y el punto de entrega.</p>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert text-center py-4"
+                 style="background-color:var(--surface-muted); border-color:var(--border-light);">
+                <h6 class="fw-semibold" style="color:var(--carbon);">No tienes prendas disponibles para donar</h6>
+                <p class="small mb-3" style="color:var(--slate);">
+                    Las prendas marcadas como en desuso o sin uso por mas de 90 dias apareceran aqui.
+                </p>
+                <a asp-controller="Prenda" asp-action="Index" class="btn btn-sm px-4"
+                   style="background-color:var(--carbon); color:white; border-color:var(--carbon);">
+                    Ir a mi guardarropa
+                </a>
+            </div>
+        }
+        else
+        {
+            <form asp-action="Lote" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Prendas en desuso -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header">
+                        Prendas disponibles para donar
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-3" style="color:var(--slate);">Selecciona las prendas que deseas incluir en este lote.</p>
+                        <div class="row g-2">
+                            @foreach (var prenda in Model)
+                            {
+                                <div class="col-sm-6">
+                                    <div class="form-check p-3"
+                                         style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="prendaIds" value="@prenda.Id"
+                                               id="prenda_@prenda.Id" />
+                                        <label class="form-check-label w-100" for="prenda_@prenda.Id">
+                                            @if (!string.IsNullOrEmpty(prenda.FotoUrl))
+                                            {
+                                                <img src="@prenda.FotoUrl" alt="@prenda.Nombre"
+                                                     class="w-100 mb-2 img-editorial"
+                                                     style="height:80px;" />
+                                            }
+                                            <div class="fw-semibold small" style="font-family:var(--font-display);">@prenda.Nombre</div>
+                                            <div style="font-size:0.7rem; color:var(--mist);">
+                                                @prenda.Categoria &middot; @prenda.Color &middot; @prenda.Talla
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Punto ONG -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header">
+                        Punto de entrega
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-3" style="color:var(--slate);">Elige la ONG donde llevaras las prendas.</p>
+                        @foreach (var punto in puntos)
+                        {
+                            <div class="form-check p-3 mb-2"
+                                 style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                <input class="form-check-input" type="radio"
+                                       name="puntoONGId" value="@punto.Id"
+                                       id="ong_@punto.Id" required />
+                                <label class="form-check-label" for="ong_@punto.Id">
+                                    <div class="fw-semibold" style="font-family:var(--font-display);">@punto.Nombre</div>
+                                    <div class="small" style="color:var(--slate);">@punto.Direccion</div>
+                                    <div class="small" style="color:var(--mist);">@punto.Telefono</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn text-white px-4 fw-semibold"
+                            style="background-color:var(--carbon); border-color:var(--carbon);">
+                        Crear lote de donacion
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        }
+
+    </div>
+</div>

@@ -1,0 +1,63 @@
+﻿@using Dressly_MVC.Models
+@model List<Dressly_MVC.Models.LoteDonacion>
+@{
+    ViewData["Title"] = "Mis Donaciones";
+    var puntos = ViewBag.Puntos as List<PuntoONG> ?? new();
+}
+
+<div class="section-header d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">Mis Donaciones</h2>
+    <a asp-action="Lote" class="btn btn-blush px-4 btn-pill">
+        <i class="bi bi-plus-lg me-1"></i> Nuevo lote
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-heart"></i></div>
+        <h5 class="text-graphite">Aun no has creado ningun lote de donacion</h5>
+        <p class="small text-slate mb-3">Cuando tengas prendas en desuso, podras donarlas a ONGs cercanas.</p>
+        <a asp-action="Lote" class="btn btn-blush mt-2 btn-pill">
+            <i class="bi bi-plus-lg me-1"></i> Crear mi primer lote
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var lote in Model)
+        {
+            var punto = puntos.FirstOrDefault(p => p.Id == lote.PuntoONGId);
+            <div class="col-md-6 col-lg-4 animate-in">
+                <a asp-action="Detalle" asp-route-id="@lote.Id"
+                   class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span style="font-family:var(--font-display);">
+                                <i class="bi bi-box-seam me-1" style="color:var(--orchid);"></i>
+                                Lote #@lote.Id
+                            </span>
+                            <span class="badge
+                                @(lote.Estado == "Pendiente" ? "bg-warning" :
+                                    lote.Estado == "Entregado" ? "bg-success" : "bg-secondary")">
+                                @lote.Estado
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1 small" style="color:var(--slate);">
+                                <strong>Prendas:</strong> @lote.PrendaIds.Count
+                            </p>
+                            <p class="mb-1 small" style="color:var(--slate);">
+                                <strong>ONG:</strong> @(punto?.Nombre ?? $"#{lote.PuntoONGId}")
+                            </p>
+                            <p class="mb-1 small" style="color:var(--slate);">
+                                <strong>Fecha:</strong> @lote.FechaCreacion.ToString("dd/MM/yyyy")
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}

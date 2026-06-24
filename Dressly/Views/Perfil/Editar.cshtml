@@ -1,0 +1,420 @@
+﻿@model Dressly_MVC.Models.PerfilFisico
+@{
+    ViewData["Title"] = "Editar Perfil";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="section-header mb-4">
+            <h2 class="mb-1">Configura tu perfil fisico</h2>
+            <p class="small" style="color:var(--slate);">
+                Esta informacion personaliza tus sugerencias de outfits.
+            </p>
+        </div>
+
+        <form asp-action="Editar" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UsuarioId" />
+
+            <!-- Tipo de cuerpo -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Tipo de cuerpo
+                </div>
+                <div class="card-body">
+                    <p class="small mb-3" style="color:var(--slate);">
+                        Selecciona la silueta que mejor describe tu cuerpo.
+                    </p>
+                    <div class="row g-2">
+                        @foreach (var tipo in new[] { "Reloj de arena", "Triangulo", "Triangulo invertido", "Rectangulo", "Manzana" })
+                        {
+                            <div class="col-6 col-md-4">
+                                <div class="form-check p-3"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    <input class="form-check-input" type="radio"
+                                           name="TipoCuerpo" value="@tipo"
+                                           id="tipo_@tipo"
+                                           checked="@(Model.TipoCuerpo == tipo ? "checked" : null)" />
+                                    <label class="form-check-label small fw-semibold"
+                                           for="tipo_@tipo">
+                                        @tipo
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="TipoCuerpo" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Colorimetria personal -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Colorimetria personal
+                </div>
+                <div class="card-body">
+                    <p class="small mb-3" style="color:var(--slate);">
+                        Responde estas preguntas sobre tus rasgos para que el sistema detecte automaticamente tu estacion de color y genere una paleta personalizada.
+                    </p>
+
+                    <!-- Subtono de piel -->
+                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
+                        SUBTONO DE PIEL
+                    </h6>
+                    <p class="small mb-2" style="color:var(--slate);">
+                        El subtono es la base cromatica de tu piel, independientemente de si es clara u oscura.
+                    </p>
+                    <div class="row g-2 mb-3">
+                        @foreach (var opt in new[] {
+                            ("C\u00e1lido", "Tus venas se ven verdosas, el dorado te favorece, te bronceas facilmente"),
+                            ("Fr\u00edo", "Tus venas se ven azuladas, la plata te favorece, te quemas con facilidad"),
+                            ("Neutro", "Tus venas tienen tonos mixtos, te quedan bien tanto dorados como plateados")
+                        })
+                        {
+                            <div class="col-md-4">
+                                <div class="form-check p-3 h-100"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    <input class="form-check-input" type="radio"
+                                           name="SubtonoPiel" value="@opt.Item1"
+                                           id="subtono_@opt.Item1"
+                                           checked="@(Model.SubtonoPiel == opt.Item1 ? "checked" : null)" />
+                                    <label class="form-check-label fw-semibold small"
+                                           for="subtono_@opt.Item1">
+                                        @opt.Item1
+                                    </label>
+                                    <p class="mt-1 mb-0" style="font-size:0.7rem; color:var(--mist);">
+                                        @opt.Item2
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Intensidad de cabello -->
+                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
+                        INTENSIDAD DE CABELLO
+                    </h6>
+                    <p class="small mb-2" style="color:var(--slate);">
+                        El tono general de tu cabello, sin contar mechas o tinte.
+                    </p>
+                    <div class="row g-2 mb-3">
+                        @foreach (var opt in new[] {
+                            ("Claro", "Rubio, rubio ceniza, rubio claro, pelirrojo claro"),
+                            ("Medio", "Castano claro, castano medio, cobrizo"),
+                            ("Oscuro", "Castano oscuro, negro, caoba oscuro")
+                        })
+                        {
+                            <div class="col-md-4">
+                                <div class="form-check p-3 h-100"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    <input class="form-check-input" type="radio"
+                                           name="IntensidadCabello" value="@opt.Item1"
+                                           id="cabello_@opt.Item1"
+                                           checked="@(Model.IntensidadCabello == opt.Item1 ? "checked" : null)" />
+                                    <label class="form-check-label fw-semibold small"
+                                           for="cabello_@opt.Item1">
+                                        @opt.Item1
+                                    </label>
+                                    <p class="mt-1 mb-0" style="font-size:0.7rem; color:var(--mist);">
+                                        @opt.Item2
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Color de ojos -->
+                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
+                        COLOR DE OJOS
+                    </h6>
+                    <p class="small mb-2" style="color:var(--slate);">
+                        El color predominante de tus ojos.
+                    </p>
+                    <div class="mb-3">
+                        <select asp-for="ColorOjos" class="form-select">
+                            <option value="">Selecciona...</option>
+                            <option value="Marrón">Marrón</option>
+                            <option value="Marrón oscuro">Marrón oscuro</option>
+                            <option value="Marrón claro">Marrón claro</option>
+                            <option value="Avellana">Avellana</option>
+                            <option value="Azul">Azul</option>
+                            <option value="Azul intenso">Azul intenso</option>
+                            <option value="Verde">Verde</option>
+                            <option value="Verde esmeralda">Verde esmeralda</option>
+                            <option value="Verde griseaceo">Verde griseaceo</option>
+                            <option value="Gris">Gris</option>
+                            <option value="Negro">Negro</option>
+                        </select>
+                        <span asp-validation-for="ColorOjos" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Estacion detectada -->
+                    @if (!string.IsNullOrEmpty(ViewBag.EstacionDetectada))
+                    {
+                        <div class="p-3 mb-3"
+                             style="background-color:var(--orchid-pale); border:1px solid var(--orchid); border-radius:var(--radius-sm);">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="fw-semibold" style="color:var(--carbon); font-size:0.8125rem;">
+                                    Estacion detectada:
+                                </span>
+                                <span class="fw-semibold" style="color:var(--orchid-muted);">
+                                    @ViewBag.EstacionDetectada
+                                </span>
+                            </div>
+                            <p class="mb-0" style="font-size:0.75rem; color:var(--slate);">
+                                Basado en los rasgos que registraste. Si no estas de acuerdo, puedes seleccionar otra estacion manualmente abajo.
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Override manual -->
+                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
+                        O SELECCIONA MANUALMENTE TU ESTACION
+                    </h6>
+                    <p class="small mb-2" style="color:var(--slate);">
+                        Si ya conoces tu estacion o no estas de acuerdo con la deteccion, eligela aqui.
+                    </p>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <div class="form-check p-3"
+                                 style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                <input class="form-check-input" type="radio"
+                                       name="Colorimetria" value=""
+                                       id="color_auto"
+                                       checked="@(string.IsNullOrEmpty(Model.Colorimetria) ? "checked" : null)" />
+                                <label class="form-check-label small fw-semibold"
+                                       for="color_auto">
+                                    Detectar auto
+                                </label>
+                            </div>
+                        </div>
+                        @foreach (var estacion in new[] { "Primavera", "Verano", "Oto\u00f1o", "Invierno" })
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="form-check p-3"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    <input class="form-check-input" type="radio"
+                                           name="Colorimetria" value="@estacion"
+                                           id="color_@estacion"
+                                           checked="@(Model.Colorimetria == estacion ? "checked" : null)" />
+                                    <label class="form-check-label fw-semibold small"
+                                           for="color_@estacion">
+                                        @estacion
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="Colorimetria" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Contraste personal -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Contraste personal
+                </div>
+                <div class="card-body">
+                    <p class="small mb-3" style="color:var(--slate);">
+                        El contraste indica la diferencia de tono entre tu piel, cabello y ojos. Esto ayuda a definir que combinaciones de colores te favorecen mas.
+                    </p>
+                    <div class="row g-2">
+                        @foreach (var opt in new[] {
+                            ("Bajo", "Tus rasgos tienen poca diferencia de tono entre si (piel, cabello y ojos similares)"),
+                            ("Medio", "Contraste moderado entre tus rasgos, con diferencia notable pero no extrema"),
+                            ("Alto", "Marcado contraste entre piel, cabello y ojos (ej. piel clara + cabello oscuro)")
+                        })
+                        {
+                            <div class="col-md-4">
+                                <div class="form-check p-3 h-100"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    <input class="form-check-input" type="radio"
+                                           name="Contraste" value="@opt.Item1"
+                                           id="contraste_@opt.Item1"
+                                           checked="@(Model.Contraste == opt.Item1 ? "checked" : null)" />
+                                    <label class="form-check-label fw-semibold small"
+                                           for="contraste_@opt.Item1">
+                                        @opt.Item1
+                                    </label>
+                                    <p class="mt-1 mb-0" style="font-size:0.7rem; color:var(--mist);">
+                                        @opt.Item2
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="Contraste" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Foto de perfil -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Foto de perfil
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3 position-relative d-inline-block">
+                        <img id="fotoPreview"
+                             src="@(Model.FotoUrl ?? "")"
+                             alt="Foto de perfil"
+                             style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:2px solid var(--border);@(string.IsNullOrEmpty(Model.FotoUrl) ? "display:none;" : "")" />
+                        <div id="fotoPlaceholder"
+                             style="width:120px;height:120px;border-radius:50%;background-color:var(--surface-muted);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--mist);@(!string.IsNullOrEmpty(Model.FotoUrl) ? "display:none;" : "")">
+                            FOTO
+                        </div>
+                    </div>
+                    <div>
+                        <input type="file" id="fotoInput" name="foto" class="d-none" accept="image/*" />
+                        <button type="button" class="btn btn-sm px-3 btn-outline-secondary"
+                                onclick="document.getElementById('fotoInput').click();">
+                            Elegir foto
+                        </button>
+                        <span class="small ms-2" style="color:var(--mist);">JPG, PNG o WEBP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos adicionales -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Datos adicionales
+                </div>
+                <div class="card-body row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="TonoPiel" class="form-label">Tono de piel</label>
+                        <select asp-for="TonoPiel" class="form-select">
+                            <option value="">Selecciona...</option>
+                            <option value="claro">Claro</option>
+                            <option value="medio">Medio</option>
+                            <option value="oscuro">Oscuro</option>
+                            <option value="muy_oscuro">Muy oscuro</option>
+                        </select>
+                        <span asp-validation-for="TonoPiel" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Altura" class="form-label">Altura (metros)</label>
+                        <input asp-for="Altura" type="number" step="0.01" min="1.40" max="2.10"
+                               class="form-control" placeholder="ej. 1.62" />
+                        <span asp-validation-for="Altura" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 fw-semibold"
+                        style="background-color:var(--carbon); border-color:var(--carbon);">
+                    Guardar perfil
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Cropper Modal -->
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:var(--radius-md); border:1px solid var(--border-light);">
+            <div class="modal-header" style="border-bottom:1px solid var(--border-light);">
+                <h6 class="modal-title fw-semibold" style="font-family:var(--font-display);">Ajustar foto de perfil</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 text-center">
+                <img id="cropperImage" src="" alt="Imagen para recortar" style="max-width:100%;" />
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border-light);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="confirmCrop" class="btn text-white px-4 fw-semibold"
+                        style="background-color:var(--carbon); border-color:var(--carbon);">
+                    Aplicar recorte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js">
+    </script>
+    <script>
+        (function () {
+            const input = document.getElementById('fotoInput');
+            const preview = document.getElementById('fotoPreview');
+            const placeholder = document.getElementById('fotoPlaceholder');
+            const modalEl = document.getElementById('cropperModal');
+            const image = document.getElementById('cropperImage');
+            const confirmBtn = document.getElementById('confirmCrop');
+
+            let cropper = null;
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    image.src = e.target.result;
+                    bsModal.show();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            modalEl.addEventListener('shown.bs.modal', function () {
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(image, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    cropBoxMovable: false,
+                    cropBoxResizable: true,
+                    background: false,
+                    modal: true,
+                    guides: false,
+                });
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+            });
+
+            confirmBtn.addEventListener('click', function () {
+                if (!cropper) return;
+
+                const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+
+                canvas.toBlob(function (blob) {
+                    const originalName = input.files[0]?.name || 'foto.jpg';
+                    const croppedFile = new File([blob], originalName, { type: 'image/jpeg' });
+
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(croppedFile);
+                    input.files = dataTransfer.files;
+
+                    const url = URL.createObjectURL(blob);
+                    preview.src = url;
+                    preview.style.display = 'inline';
+                    placeholder.style.display = 'none';
+
+                    bsModal.hide();
+                }, 'image/jpeg', 0.92);
+            });
+
+            if (preview.src && preview.src !== window.location.href && !preview.src.endsWith('/')) {
+                preview.style.display = 'inline';
+                placeholder.style.display = 'none';
+            }
+        })();
+    </script>
+}

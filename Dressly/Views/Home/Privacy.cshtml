@@ -1,0 +1,52 @@
+﻿@{
+    ViewData["Title"] = "Politica de Privacidad";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="section-header mb-4">
+            <h1 class="mb-1">Politica de Privacidad</h1>
+            <p class="small" style="color:var(--mist);">Ultima actualizacion: junio 2026</p>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-semibold" style="color:var(--carbon);">1. Datos que recopilamos</h5>
+                <p class="mb-0" style="color:var(--slate);">Dressly recopila unicamente los datos que tu proporcionas: nombre, correo electronico, caracteristicas fisicas (tipo de cuerpo, colorimetria, talla) e imagenes de tus prendas. No recopilamos datos de navegacion ni compartimos tu informacion con terceros.</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-semibold" style="color:var(--carbon);">2. Uso de tus datos</h5>
+                <p class="mb-0" style="color:var(--slate);">Tu informacion se utiliza exclusivamente para personalizar las sugerencias de outfits basadas en colorimetria y para conectar prendas en desuso con redes de donacion. Nunca utilizamos tus datos con fines publicitarios.</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-semibold" style="color:var(--carbon);">3. Almacenamiento</h5>
+                <p class="mb-0" style="color:var(--slate);">Tus datos se almacenan de forma local en archivos JSON durante el entorno de desarrollo. En produccion, la informacion se guarda en Amazon RDS y las imagenes en Amazon S3, ambos bajo politicas de seguridad configuradas en VPC privada con Security Groups.</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-semibold" style="color:var(--carbon);">4. Tus derechos</h5>
+                <p class="mb-0" style="color:var(--slate);">Puedes solicitar la eliminacion de tu cuenta y todos los datos asociados en cualquier momento. Para hacerlo, contacta a la administradora del sistema.</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-semibold" style="color:var(--carbon);">5. Economia circular y donaciones</h5>
+                <p class="mb-0" style="color:var(--slate);">Cuando creas un lote de donacion, unicamente se comparte con la ONG seleccionada la descripcion general de las prendas. No se transfieren datos personales del usuario a ninguna organizacion externa.</p>
+            </div>
+        </div>
+
+        <a asp-controller="Home" asp-action="Index" class="btn px-4"
+           style="background-color:var(--carbon); color:white; border-color:var(--carbon);">
+            Volver al inicio
+        </a>
+    </div>
+</div>

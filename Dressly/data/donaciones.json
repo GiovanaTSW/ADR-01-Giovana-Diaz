@@ -1,0 +1,61 @@
+{
+  "Lotes": [
+    {
+      "Id": 1,
+      "PrendaIds": [
+        11
+      ],
+      "PuntoONGId": 1,
+      "Estado": "Entregado",
+      "FechaCreacion": "2026-06-19T13:02:12.3939537-06:00",
+      "UsuarioId": 2
+    },
+    {
+      "Id": 2,
+      "PrendaIds": [
+        9
+      ],
+      "PuntoONGId": 2,
+      "Estado": "Pendiente",
+      "FechaCreacion": "2026-06-19T14:23:30.4765048-06:00",
+      "UsuarioId": 3
+    },
+    {
+      "Id": 3,
+      "PrendaIds": [
+        12,
+        15
+      ],
+      "PuntoONGId": 1,
+      "Estado": "Pendiente",
+      "FechaCreacion": "2026-06-19T15:42:42.2942404-06:00",
+      "UsuarioId": 3
+    }
+  ],
+  "PuntosONG": [
+    {
+      "Id": 1,
+      "Nombre": "C\u00E1ritas M\u00E9xico",
+      "Direccion": "Av. Reforma 222, CDMX",
+      "Latitud": 19.4326,
+      "Longitud": -99.1332,
+      "Telefono": "55-1234-5678"
+    },
+    {
+      "Id": 2,
+      "Nombre": "Banco de Ropa",
+      "Direccion": "Calle 5 de Mayo 100, Monterrey",
+      "Latitud": 25.6866,
+      "Longitud": -100.3161,
+      "Telefono": "81-8765-4321"
+    },
+    {
+      "Id": 3,
+      "Nombre": "Fundaci\u00F3n Toca",
+      "Direccion": "Blvd. Kukulc\u00E1n Km 4, Canc\u00FAn",
+      "Latitud": 21.1619,
+      "Longitud": -86.8515,
+      "Telefono": "998-555-1234"
+    }
+  ]
+}

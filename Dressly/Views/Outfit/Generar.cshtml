@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Generar Outfit";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+
+        <div class="section-header text-center mb-4">
+            <h2 class="mb-1">Generar sugerencia de outfit</h2>
+            <p class="small" style="color:var(--slate);">
+                Dressly elegira prendas compatibles con tu colorimetria.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="Generar" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            Para que ocasion es el outfit?
+                        </label>
+                        <div class="row g-2 mt-1">
+                            @foreach (var ocasion in new[] { "Casual", "Formal", "Deportivo", "Fiesta", "Trabajo", "Playa" })
+                            {
+                                <div class="col-6">
+                                    <div class="form-check p-3"
+                                         style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                        <input class="form-check-input" type="radio"
+                                               name="ocasion" value="@ocasion"
+                                               id="ocasion_@ocasion" required />
+                                        <label class="form-check-label fw-semibold small"
+                                               for="ocasion_@ocasion">
+                                            @ocasion
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn text-white px-4 fw-semibold w-100 py-2"
+                                style="background-color:var(--carbon); border-color:var(--carbon);">
+                            Generar sugerencia
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

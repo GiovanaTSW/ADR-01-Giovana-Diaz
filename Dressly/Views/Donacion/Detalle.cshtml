@@ -1,0 +1,160 @@
+@using Dressly_MVC.Models
+@model Tuple<LoteDonacion, List<Prenda>>
+@{
+    var lote = Model.Item1;
+    var prendas = Model.Item2;
+    var punto = ViewBag.Punto as PuntoONG;
+    ViewData["Title"] = $"Lote #{lote.Id}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="bi bi-box-seam me-2" style="color:var(--orchid);"></i>
+                Lote #@lote.Id
+            </h2>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                Mis donaciones
+            </a>
+        </div>
+
+        <!-- Estado del lote -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center py-3">
+                <div>
+                    <span class="badge
+                        @(lote.Estado == "Pendiente" ? "bg-warning" :
+                            lote.Estado == "Entregado" ? "bg-success" : "bg-secondary")">
+                        @lote.Estado
+                    </span>
+                </div>
+                <div class="text-end">
+                    <div class="small" style="color:var(--mist);">Creado el</div>
+                    <div class="fw-semibold small">@lote.FechaCreacion.ToString("dd/MM/yyyy")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Punto ONG -->
+        @if (punto != null)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <i class="bi bi-geo-alt me-1" style="color:var(--blush);"></i>
+                    Punto de entrega
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p class="small mb-0" style="color:var(--slate);">Nombre</p>
+                            <p class="fw-semibold mb-0">@punto.Nombre</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="small mb-0" style="color:var(--slate);">Direccion</p>
+                            <p class="fw-semibold mb-0">@punto.Direccion</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="small mb-0" style="color:var(--slate);">Telefono</p>
+                            <p class="fw-semibold mb-0">@punto.Telefono</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Prendas del lote -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-handbag me-1" style="color:var(--orchid);"></i>
+                    Prendas en este lote (@prendas.Count)
+                </span>
+            </div>
+            <div class="card-body">
+                @if (!prendas.Any())
+                {
+                    <p class="small text-center py-3 mb-0" style="color:var(--mist);">Este lote no tiene prendas.</p>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var prenda in prendas)
+                        {
+                            <div class="col-md-6 animate-in">
+                                <div class="p-3 h-100 d-flex flex-column"
+                                     style="border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                                    @if (!string.IsNullOrEmpty(prenda.FotoUrl))
+                                    {
+                                        <img src="@prenda.FotoUrl" alt="@prenda.Nombre"
+                                             class="w-100 mb-2 img-editorial"
+                                             style="height:120px;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center w-100 mb-2 img-editorial"
+                                             style="height:120px; font-size:0.75rem; color:var(--mist);">
+                                            <i class="bi bi-image me-1"></i> SIN FOTO
+                                        </div>
+                                    }
+                                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-family:var(--font-display); font-size:0.875rem;">@prenda.Nombre</h6>
+                                    <div class="small mb-1" style="font-size:0.7rem; color:var(--slate);">
+                                        @prenda.Categoria &middot; @prenda.Color &middot; @prenda.Talla
+                                    </div>
+                                    <div class="small mb-1" style="font-size:0.7rem; color:var(--slate);">
+                                        @prenda.Estacion &middot; @prenda.VecesUsada usos
+                                    </div>
+                                    <div class="small mb-2" style="font-size:0.7rem; color:var(--mist);">
+                                        <i class="bi bi-clock me-1"></i> @prenda.FechaUltimoUso.ToString("dd/MM/yyyy")
+                                    </div>
+
+                                    @if (lote.Estado == "Pendiente")
+                                    {
+                                        <div class="mt-auto">
+                                            <form asp-action="QuitarPrenda" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="loteId" value="@lote.Id" />
+                                                <input type="hidden" name="prendaId" value="@prenda.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning w-100"
+                                                        onclick="return confirm('Retirar @prenda.Nombre del lote? La prenda volvera a estar disponible en tu guardarropa.')">
+                                                    Retirar del lote
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (lote.Estado == "Pendiente")
+        {
+            <div class="card border-0 shadow-sm mb-4" style="background:var(--gradient-soft);">
+                <div class="card-body d-flex gap-2 flex-wrap">
+                    <form asp-action="MarcarEntregado" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="loteId" value="@lote.Id" />
+                        <button type="submit" class="btn text-white px-4 fw-semibold btn-pill"
+                                style="background-color:var(--success); border-color:var(--success);"
+                                onclick="return confirm('Confirmas que ya entregaste este lote en la ONG? Una vez hecho esto, el lote se marcara como Entregado.')">
+                            <i class="bi bi-check-circle me-1"></i> Ya lo lleve a la ONG
+                        </button>
+                    </form>
+                    <form asp-action="CancelarLote" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="loteId" value="@lote.Id" />
+                        <button type="submit" class="btn btn-outline-danger px-4 btn-pill"
+                                onclick="return confirm('Cancelar todo el lote? Todas las prendas volveran a estar disponibles en tu guardarropa.')">
+                            <i class="bi bi-x-circle me-1"></i> Cancelar lote completo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

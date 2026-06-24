@@ -1,0 +1,143 @@
+﻿@model List<Dressly_MVC.Models.Prenda>
+@{
+    var esSugerencia = ViewBag.EsSugerencia == true;
+    ViewData["Title"] = esSugerencia ? "Sugerencia de Outfit" : ViewBag.OutfitNombre ?? "Outfit guardado";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        @if (esSugerencia)
+        {
+            <div class="section-header text-center mb-4">
+                <h2 class="mb-1">Tu outfit sugerido</h2>
+                <div class="orchid-line mx-auto mb-2"></div>
+                <p class="small" style="color:var(--slate);">
+                    Combinacion basada en tu colorimetria y prendas disponibles.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0" style="color:var(--carbon);">
+                    @ViewBag.OutfitNombre
+                </h2>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                    Mis outfits
+                </a>
+            </div>
+            <div class="d-flex gap-3 mb-4 small" style="color:var(--slate);">
+                <span><i class="bi bi-tag me-1"></i> @ViewBag.OutfitOcasion</span>
+                <span>&middot;</span>
+                <span><i class="bi bi-calendar me-1"></i> @ViewBag.OutfitFecha.ToString("dd/MM/yyyy")span>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state" style="padding:var(--space-2xl) var(--space-xl);">
+                <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
+                <h6 class="fw-semibold" style="color:var(--carbon);">No encontramos prendas compatibles</h6>
+                <p class="small mb-3" style="color:var(--slate);">
+                    Agrega mas prendas a tu guardarropa o actualiza tu perfil de colorimetria.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a asp-controller="Prenda" asp-action="Crear"
+                       class="btn btn-sm px-3 btn-blush">
+                        Agregar prenda
+                    </a>
+                    <a asp-controller="Perfil" asp-action="Editar"
+                       class="btn btn-sm btn-outline-secondary px-3">
+                        Actualizar perfil
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3 mb-4">
+                @foreach (var prenda in Model)
+                {
+                    <div class="col-sm-4 animate-in">
+                        <div class="card border-0 shadow-sm text-center h-100">
+                            @if (!string.IsNullOrEmpty(prenda.FotoUrl))
+                            {
+                                <img src="@prenda.FotoUrl" alt="@prenda.Nombre"
+                                     class="card-img-top img-editorial"
+                                     style="height:160px;" />
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="height:160px; background:var(--gradient-soft); color:var(--mist); font-size:0.75rem; letter-spacing:0.1em;">
+                                    <i class="bi bi-image me-1"></i> SIN FOTO
+                                </div>
+                            }
+                            <div class="card-body py-2">
+                                <p class="fw-semibold mb-0 small" style="font-family:var(--font-display);">@prenda.Nombre</p>
+                                <p class="mb-0" style="font-size:0.7rem; color:var(--mist);">
+                                    @prenda.Categoria &middot; @prenda.Color
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (esSugerencia)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <form asp-action="Guardar" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="ocasion" value="@ViewBag.Ocasion" />
+                            @foreach (var prenda in Model)
+                            {
+                                <input type="hidden" name="prendaIds" value="@prenda.Id" />
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Ponle nombre a tu outfit
+                                </label>
+                                <input type="text" name="nombre" class="form-control"
+                                       placeholder="Ej: Oficina elegante" required
+                                       value="@($"Outfit {ViewBag.Ocasion}")" />
+                            </div>
+
+                            <button type="submit" class="btn btn-blush px-4 fw-semibold btn-pill">
+                                <i class="bi bi-bookmark me-1"></i> Guardar outfit
+                            </button>
+                        </form>
+
+                        <div class="d-flex gap-2 flex-wrap mt-3">
+                            <form asp-action="Generar" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ocasion" value="@ViewBag.Ocasion" />
+                                <button type="submit" class="btn px-4 fw-semibold btn-outline-secondary btn-pill">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Generar otro
+                                </button>
+                            </form>
+                            <a asp-action="Generar" class="btn btn-outline-secondary px-4 btn-pill">
+                                Cambiar ocasion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex gap-2 justify-content-center">
+                    <a asp-action="Generar" class="btn btn-blush px-4 fw-semibold btn-pill">
+                        <i class="bi bi-stars me-1"></i> Generar nuevo outfit
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 btn-pill">
+                        Ver mis outfits
+                    </a>
+                </div>
+            }
+        }
+
+    </div>
+</div>

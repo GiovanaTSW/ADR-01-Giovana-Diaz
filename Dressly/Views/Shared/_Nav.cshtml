@@ -1,0 +1,74 @@
+﻿@using System.Security.Claims
+<nav class="navbar navbar-expand-lg navbar-editorial sticky-top">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+            <span class="brand-icon"><i class="bi bi-handbag-fill"></i></span>
+            Dressly
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navegacion">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto gap-1">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Prenda" asp-action="Index">
+                            <i class="bi bi-handbag"></i> Guardarropa
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Outfit" asp-action="Index">
+                            <i class="bi bi-stars"></i> Outfits
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Prenda" asp-action="Estadisticas">
+                            <i class="bi bi-bar-chart-line"></i> Estadisticas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Perfil" asp-action="Index">
+                            <i class="bi bi-person"></i> Perfil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Donacion" asp-action="Index">
+                            <i class="bi bi-heart"></i> Donar
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> @User.FindFirstValue(ClaimTypes.Name)
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <form asp-controller="Auth" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar sesion
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Auth" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right"></i> Iniciar sesion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Auth" asp-action="Register">
+                            <i class="bi bi-person-plus"></i> Crear cuenta
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>

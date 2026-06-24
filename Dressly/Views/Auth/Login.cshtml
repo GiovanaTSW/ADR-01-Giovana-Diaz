@@ -1,0 +1,62 @@
+@model Dressly_MVC.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesion";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+
+        <div class="section-header text-center mb-4">
+            <h2 class="mb-1" style="font-family:var(--font-display);">Dressly</h2>
+            <div class="orchid-line mx-auto mb-2"></div>
+            <p class="text-slate" style="font-size:0.875rem;">Inicia sesion para gestionar tu guardarropa</p>
+        </div>
+
+        <div class="card border-0 shadow-sm border-top-accent">
+            <div class="card-body p-4">
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger small py-2">
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control"
+                               placeholder="tu@email.com" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Contrasena</label>
+                        <input asp-for="Password" class="form-control" type="password" />
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input asp-for="Recordarme" class="form-check-input" />
+                        <label asp-for="Recordarme" class="form-check-label small text-graphite">
+                            Recordarme
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-blush w-100 fw-semibold py-2 btn-pill">
+                        Iniciar sesion
+                    </button>
+                </form>
+
+                <p class="text-center mt-3 mb-0 small text-slate">
+                    No tienes cuenta?
+                    <a asp-action="Register" class="fw-semibold text-charcoal"
+                       style="text-decoration:underline; text-underline-offset:2px;">
+                        Registrate
+                    </a>
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>

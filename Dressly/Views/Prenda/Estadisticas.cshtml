@@ -1,0 +1,190 @@
+@model Dressly_MVC.ViewModels.EstadisticasViewModel
+@{
+    ViewData["Title"] = "Estadisticas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0" style="color:var(--carbon);">Estadisticas del guardarropa</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+        Volver
+    </a>
+</div>
+
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="state-card">
+            <div class="state-number">@Model.TotalPrendas</div>
+            <div class="state-label">Prendas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="state-card">
+            <div class="state-number" style="color:var(--orchid-muted);">@Model.TotalOutfits</div>
+            <div class="state-label">Outfits</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="state-card">
+            <div class="state-number" style="color:var(--warning);">@Model.EnDesuso</div>
+            <div class="state-label">En desuso</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="state-card">
+            <div class="state-number" style="color:var(--danger);">@Model.PrendasDonar</div>
+            <div class="state-label">Para donar</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Top prendas -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header">
+                Prendas mas usadas
+            </div>
+            <div class="card-body">
+                @if (!Model.TopPrendas.Any())
+                {
+                    <p class="small mb-0 text-center py-3" style="color:var(--mist);">Aun no tienes prendas registradas.</p>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var prenda in Model.TopPrendas.Select((p, i) => new { p, i }))
+                        {
+                            <div class="list-group-item d-flex align-items-center gap-3 px-0">
+                                <div class="fw-semibold" style="color:var(--mist); min-width:24px; font-size:0.75rem;">
+                                    @(prenda.i + 1)
+                                </div>
+                                @if (!string.IsNullOrEmpty(prenda.p.FotoUrl))
+                                {
+                                    <img src="@prenda.p.FotoUrl" alt="@prenda.p.Nombre"
+                                         class="img-editorial"
+                                         style="width:40px;height:40px;border-radius:var(--radius-sm);" />
+                                }
+                                else
+                                {
+                                    <div class="img-editorial d-flex align-items-center justify-content-center"
+                                         style="width:40px;height:40px;border-radius:var(--radius-sm); font-size:0.625rem; color:var(--mist);">
+                                        ---
+                                    </div>
+                                }
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small" style="font-family:var(--font-display);">@prenda.p.Nombre</div>
+                                </div>
+                                <span class="badge" style="background-color:var(--orchid-pale); color:var(--orchid-muted);">
+                                    @prenda.p.VecesUsada usos
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Colores -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header">
+                Distribucion de colores
+            </div>
+            <div class="card-body">
+                @if (!Model.DistribucionColores.Any())
+                {
+                    <p class="small mb-0 text-center py-3" style="color:var(--mist);">Sin datos.</p>
+                }
+                else
+                {
+                    var maxColor = Model.DistribucionColores.Max(c => c.Cantidad);
+                    @foreach (var item in Model.DistribucionColores)
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="color-dot" style="background-color:@item.HexCode;"></div>
+                            <div class="small" style="min-width:80px;">@item.Color</div>
+                            <div class="flex-grow-1">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@((double)item.Cantidad / maxColor * 100)%; background-color:var(--blush);">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="small fw-semibold" style="min-width:24px; text-align:right;">@item.Cantidad</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Categorias -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header">
+                Por categoria
+            </div>
+            <div class="card-body">
+                @if (!Model.DistribucionCategorias.Any())
+                {
+                    <p class="small mb-0 text-center py-3" style="color:var(--mist);">Sin datos.</p>
+                }
+                else
+                {
+                    var maxCat = Model.DistribucionCategorias.Max(c => c.Cantidad);
+                    @foreach (var item in Model.DistribucionCategorias)
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="small fw-semibold" style="min-width:80px;">@item.Categoria</div>
+                            <div class="flex-grow-1">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@((double)item.Cantidad / maxCat * 100)%; background-color:var(--orchid);">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="small fw-semibold" style="min-width:24px; text-align:right;">@item.Cantidad</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Temporadas -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header">
+                Por temporada
+            </div>
+            <div class="card-body">
+                @if (!Model.DistribucionTemporadas.Any())
+                {
+                    <p class="small mb-0 text-center py-3" style="color:var(--mist);">Sin datos.</p>
+                }
+                else
+                {
+                    var maxTemp = Model.DistribucionTemporadas.Max(t => t.Cantidad);
+                    @foreach (var item in Model.DistribucionTemporadas)
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="small fw-semibold" style="min-width:100px;">@item.Temporada</div>
+                            <div class="flex-grow-1">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@((double)item.Cantidad / maxTemp * 100)%; background-color:var(--blush);">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="small fw-semibold" style="min-width:24px; text-align:right;">@item.Cantidad</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+</div>

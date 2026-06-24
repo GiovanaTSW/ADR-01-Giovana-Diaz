@@ -1,0 +1,160 @@
+﻿@model Dressly_MVC.Models.Prenda
+@{
+    ViewData["Title"] = "Agregar Prenda";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Agregar nueva prenda</h2>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                Volver
+            </a>
+        </div>
+
+        <form asp-action="Crear" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <!-- Foto -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Foto de la prenda
+                </div>
+                <div class="card-body text-center">
+                    <div id="preview" class="mb-3 d-none">
+                        <img id="imgPreview" src="#" alt="preview"
+                             class="rounded-3 img-fluid img-editorial"
+                             style="max-height:200px;" />
+                    </div>
+                    <div id="processing" class="py-4 d-none"
+                         style="background-color:var(--surface-muted); border-radius:var(--radius-md);">
+                        <div class="spinner-border" style="color:var(--orchid-muted);" role="status"></div>
+                        <p class="small mt-2 mb-0" style="color:var(--slate);">Quitando fondo...</p>
+                    </div>
+                    <div id="placeholder" class="py-4"
+                         style="background-color:var(--surface-muted); border-radius:var(--radius-md);">
+                        <div class="mb-2" style="color:var(--mist); font-size:0.875rem; letter-spacing:0.1em;">
+                            SELECCIONA UNA FOTO
+                        </div>
+                        <p class="small mb-0" style="color:var(--mist);">Formatos: JPG, PNG, WEBP</p>
+                    </div>
+                    <input type="file" name="foto" id="foto" accept="image/*"
+                           class="form-control mt-3" />
+                </div>
+            </div>
+
+            <!-- Datos de la prenda -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    Datos de la prenda
+                </div>
+                <div class="card-body row g-3">
+
+                    <div class="col-12">
+                        <label asp-for="Nombre" class="form-label">Nombre</label>
+                        <input asp-for="Nombre" class="form-control"
+                               placeholder="ej. Blusa blanca de algodon" />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Categoria" class="form-label">Categoria</label>
+                        <select asp-for="Categoria" class="form-select">
+                            <option value="">Selecciona...</option>
+                            <option value="Superior">Superior</option>
+                            <option value="Inferior">Inferior</option>
+                            <option value="Calzado">Calzado</option>
+                            <option value="Accesorio">Accesorio</option>
+                            <option value="Vestido">Vestido</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Color" class="form-label">Color</label>
+                        <input asp-for="Color" class="form-control"
+                               placeholder="ej. azul marino" />
+                        <span asp-validation-for="Color" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Talla" class="form-label">Talla</label>
+                        <input asp-for="Talla" class="form-control"
+                               placeholder="ej. M, 28, 24" />
+                        <span asp-validation-for="Talla" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Estacion" class="form-label">Temporada</label>
+                        <select asp-for="Estacion" class="form-select">
+                            <option value="">Selecciona...</option>
+                            <option value="Primavera">Primavera</option>
+                            <option value="Verano">Verano</option>
+                            <option value="Otoño">Otono</option>
+                            <option value="Invierno">Invierno</option>
+                            <option value="Todo el año">Todo el anio</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 fw-semibold"
+                        style="background-color:var(--carbon); border-color:var(--carbon);">
+                    Guardar prenda
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('foto').addEventListener('change', async function () {
+            if (!this.files || !this.files[0]) return;
+
+            const file = this.files[0];
+            const placeholder = document.getElementById('placeholder');
+            const processing = document.getElementById('processing');
+            const preview = document.getElementById('preview');
+            const previewImg = document.getElementById('imgPreview');
+
+            placeholder.classList.add('d-none');
+            processing.classList.remove('d-none');
+
+            try {
+                const module = await import(
+                    'https://cdn.jsdelivr.net/npm/@@imgly/background-removal@@1.4.5/+esm');
+                const blob = await module.removeBackground(file);
+
+                const processedFile = new File([blob],
+                    file.name.replace(/\.[^.]+$/, '.png'),
+                    { type: 'image/png' });
+
+                const dt = new DataTransfer();
+                dt.items.add(processedFile);
+                this.files = dt.files;
+
+                previewImg.src = URL.createObjectURL(blob);
+                processing.classList.add('d-none');
+                preview.classList.remove('d-none');
+            } catch (err) {
+                console.warn('Fallo eliminacion de fondo, usando original', err);
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    processing.classList.add('d-none');
+                    preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}

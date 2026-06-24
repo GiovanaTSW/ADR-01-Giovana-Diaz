@@ -1,0 +1,61 @@
+﻿@model List<Dressly_MVC.Models.Outfit>
+@{
+    ViewData["Title"] = "Mis Outfits";
+}
+
+<div class="section-header d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">Mis Outfits</h2>
+    <a asp-action="Generar" class="btn btn-blush px-4 btn-pill">
+        <i class="bi bi-stars me-1"></i> Generar outfit
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-stars"></i></div>
+        <h5 class="text-graphite">Aun no tienes outfits guardados</h5>
+        <p class="small text-slate mb-3">Genera una sugerencia basada en tu colorimetria y guardala.</p>
+        <a asp-action="Generar" class="btn btn-blush mt-2 btn-pill">
+            <i class="bi bi-stars me-1"></i> Generar mi primer outfit
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var outfit in Model)
+        {
+            <div class="col-md-6 col-lg-4 animate-in">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <span style="color:var(--orchid);"><i class="bi bi-stars"></i></span>
+                        @outfit.Nombre
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1 small" style="color:var(--slate);">
+                            <strong>Prendas:</strong> @outfit.PrendaIds.Count
+                        </p>
+                        <p class="mb-1 small" style="color:var(--slate);">
+                            <strong>Ocasion:</strong> @outfit.Ocasion
+                        </p>
+                        <p class="mb-1 small" style="color:var(--slate);">
+                            <strong>Creado:</strong> @outfit.FechaCreacion.ToString("dd/MM/yyyy")
+                        </p>
+                        @if (!string.IsNullOrEmpty(outfit.Descripcion))
+                        {
+                            <p class="mt-2 small fst-italic" style="color:var(--mist);">@outfit.Descripcion</p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3"
+                         style="border-top:1px solid var(--border-light) !important;">
+                        <a asp-action="Ver" asp-route-id="@outfit.Id"
+                           class="btn btn-sm px-3 btn-blush">
+                            Ver detalle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

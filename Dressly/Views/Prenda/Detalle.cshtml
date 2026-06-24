@@ -1,0 +1,137 @@
+﻿@model Dressly_MVC.Models.Prenda
+@{
+    ViewData["Title"] = Model.Nombre;
+    var diasSinUso = (DateTime.Now - Model.FechaUltimoUso).Days;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0" style="color:var(--carbon);">@Model.Nombre</h2>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                Volver
+            </a>
+        </div>
+
+        @if (diasSinUso >= 90 && !Model.EnDesuso)
+        {
+            <div class="alert d-flex align-items-center gap-3"
+                 style="background-color:var(--warning-bg); border-color:var(--sand);">
+                <div>
+                    <strong style="color:var(--warning);">@diasSinUso dias sin usar</strong>
+                    <p class="mb-0 small" style="color:var(--slate);">
+                        Esta prenda no se usa hace mas de 3 meses.
+                        <a asp-controller="Donacion" asp-action="Lote" class="fw-semibold"
+                           style="color:var(--charcoal); text-decoration:underline; text-underline-offset:2px;">
+                            Quieres donarla?
+                        </a>
+                    </p>
+                </div>
+            </div>
+        }
+
+        @if (Model.EnDesuso)
+        {
+            <div class="alert d-flex align-items-center gap-3"
+                 style="background-color:var(--warning-bg); border-color:var(--sand);">
+                <div>
+                    <strong style="color:var(--warning);">Prenda en desuso</strong>
+                    <p class="mb-0 small" style="color:var(--slate);">
+                        Esta marcada para donacion. Si cambias de opinion, puedes volver a ponerla "En uso".
+                    </p>
+                </div>
+            </div>
+        }
+
+        <div class="card border-0 shadow-sm">
+            @if (!string.IsNullOrEmpty(Model.FotoUrl))
+            {
+                <img src="@Model.FotoUrl" alt="@Model.Nombre"
+                     class="card-img-top img-editorial"
+                     style="max-height:340px;" />
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height:220px; background-color:var(--surface-muted); color:var(--mist); font-size:0.875rem; letter-spacing:0.1em;">
+                    SIN FOTO
+                </div>
+            }
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Categoria</p>
+                        <p class="fw-semibold mb-0">@Model.Categoria</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Color</p>
+                        <p class="fw-semibold mb-0">@Model.Color</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Talla</p>
+                        <p class="fw-semibold mb-0">@Model.Talla</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Temporada</p>
+                        <p class="fw-semibold mb-0">@Model.Estacion</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Veces usado</p>
+                        <p class="fw-semibold mb-0">@Model.VecesUsada veces</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="small mb-0" style="color:var(--slate);">Ultimo uso</p>
+                        <p class="fw-semibold mb-0">
+                            @Model.FechaUltimoUso.ToString("dd/MM/yyyy")
+                            @if (diasSinUso > 0)
+                            {
+                                <span class="small" style="color:var(--mist);">(@diasSinUso dias)</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="col-12">
+                        <p class="small mb-1" style="color:var(--slate);">Estado</p>
+                        <span class="badge @(Model.EnDesuso ? "bg-warning" : "bg-success")">
+                            @(Model.EnDesuso ? "En desuso" : "En uso")
+                        </span>
+                        @if (diasSinUso >= 90 && !Model.EnDesuso)
+                        {
+                            <span class="badge ms-1" style="background-color:var(--warning-bg); color:var(--warning);">
+                                @diasSinUso dias sin uso
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-transparent border-0 d-flex gap-2 pb-4 px-4 flex-wrap"
+                 style="border-top:1px solid var(--border-light) !important;">
+                <a asp-controller="Donacion" asp-action="Lote"
+                   class="btn btn-sm px-3"
+                   style="background-color:var(--carbon); color:white; border-color:var(--carbon);">
+                    Donar prenda
+                </a>
+                <form asp-action="ToggleEstadoUso" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <button type="submit"
+                            class="btn btn-sm px-3 @(Model.EnDesuso ? "btn-outline-success" : "btn-outline-secondary")">
+                        @(Model.EnDesuso ? "Volver a usar" : "Marcar en desuso")
+                    </button>
+                </form>
+                <form asp-action="Eliminar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-sm btn-outline-danger px-3"
+                            onclick="return confirm('Eliminar esta prenda?')">
+                        Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

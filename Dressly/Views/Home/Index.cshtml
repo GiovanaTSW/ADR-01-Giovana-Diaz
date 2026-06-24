@@ -1,0 +1,110 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<!-- Hero editorial -->
+<div class="hero-section">
+    <h1 class="display-5 fw-bold mb-2">
+        Bienvenida a Dressly
+    </h1>
+    <div class="orchid-line mx-auto mb-3"></div>
+    <p class="mb-4" style="color:var(--slate); font-size:1rem; max-width:520px; margin:0 auto; position:relative; z-index:1;">
+        Digitaliza tu guardarropa, descubre outfits confeccionados para ti y dona lo que ya no usas.
+    </p>
+    <a asp-controller="Prenda" asp-action="Index"
+       class="btn btn-blush px-5 py-2 fw-semibold btn-pill">
+        <i class="bi bi-handbag me-1"></i> Ver mi guardarropa
+    </a>
+</div>
+
+<!-- Feature cards -->
+<div class="row g-4">
+    <div class="col-sm-6 col-lg-3 animate-in animate-in-delay-1">
+        <div class="card h-100 border-0 shadow-sm text-center card-accent-blush">
+            <div class="card-body py-4 feature-card">
+                <div class="feature-number">01</div>
+                <div class="mb-3" style="font-size:1.8rem; color:var(--blush);">
+                    <i class="bi bi-handbag"></i>
+                </div>
+                <h5 class="card-title fw-semibold" style="font-family:var(--font-display); font-size:1rem;">
+                    Mi Guardarropa
+                </h5>
+                <p class="card-text small" style="color:var(--slate);">
+                    Registra tus prendas con fotos y tenlas siempre organizadas.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-4">
+                <a asp-controller="Prenda" asp-action="Index"
+                   class="btn btn-sm px-4 btn-outline-secondary">
+                    Ir al guardarropa
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 animate-in animate-in-delay-2">
+        <div class="card h-100 border-0 shadow-sm text-center card-accent-orchid">
+            <div class="card-body py-4 feature-card">
+                <div class="feature-number">02</div>
+                <div class="mb-3" style="font-size:1.8rem; color:var(--orchid);">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <h5 class="card-title fw-semibold" style="font-family:var(--font-display); font-size:1rem;">
+                    Outfits
+                </h5>
+                <p class="card-text small" style="color:var(--slate);">
+                    Genera sugerencias automaticas basadas en tu colorimetria.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-4">
+                <a asp-controller="Outfit" asp-action="Generar"
+                   class="btn btn-sm px-4 btn-outline-secondary">
+                    Generar outfit
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 animate-in animate-in-delay-3">
+        <div class="card h-100 border-0 shadow-sm text-center card-accent-sand">
+            <div class="card-body py-4 feature-card">
+                <div class="feature-number">03</div>
+                <div class="mb-3" style="font-size:1.8rem; color:var(--sand);">
+                    <i class="bi bi-person"></i>
+                </div>
+                <h5 class="card-title fw-semibold" style="font-family:var(--font-display); font-size:1rem;">
+                    Mi Perfil
+                </h5>
+                <p class="card-text small" style="color:var(--slate);">
+                    Configura tu tipo de cuerpo y colorimetria personal.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-4">
+                <a asp-controller="Perfil" asp-action="Index"
+                   class="btn btn-sm px-4 btn-outline-secondary">
+                    Ver perfil
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 animate-in animate-in-delay-4">
+        <div class="card h-100 border-0 shadow-sm text-center card-accent-success">
+            <div class="card-body py-4 feature-card">
+                <div class="feature-number">04</div>
+                <div class="mb-3" style="font-size:1.8rem; color:var(--success);">
+                    <i class="bi bi-heart"></i>
+                </div>
+                <h5 class="card-title fw-semibold" style="font-family:var(--font-display); font-size:1rem;">
+                    Economia Circular
+                </h5>
+                <p class="card-text small" style="color:var(--slate);">
+                    Dona prendas en desuso y conecta con redes de ONGs cercanas.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-4">
+                <a asp-controller="Donacion" asp-action="Index"
+                   class="btn btn-sm px-4 btn-outline-secondary">
+                    Ir a donaciones
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

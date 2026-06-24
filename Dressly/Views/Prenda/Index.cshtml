@@ -1,0 +1,135 @@
+﻿@model List<Dressly_MVC.Models.Prenda>
+@{
+    ViewData["Title"] = "Mi Guardarropa";
+}
+
+<div class="section-header d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">Mi Guardarropa</h2>
+    <a asp-action="Crear" class="btn btn-blush px-4 btn-pill">
+        <i class="bi bi-plus-lg me-1"></i> Agregar prenda
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-handbag"></i></div>
+        <h5 class="text-graphite">Tu guardarropa esta vacio</h5>
+        <p class="small text-slate mb-3">Empieza agregando tus prendas con fotos reales.</p>
+        <a asp-action="Crear" class="btn btn-blush mt-2 btn-pill">
+            <i class="bi bi-plus-lg me-1"></i> Agregar mi primera prenda
+        </a>
+    </div>
+}
+else
+{
+    <!-- Filtros -->
+    <div class="d-flex gap-2 flex-wrap mb-4">
+        <button class="btn filtro active" data-categoria="todos">
+            Todos
+        </button>
+        @foreach (var cat in new[] { "Superior", "Inferior", "Calzado", "Accesorio" })
+        {
+            <button class="btn filtro" data-categoria="@cat">
+                @cat
+            </button>
+        }
+    </div>
+
+    <div class="row g-3" id="listaPrendas">
+        @foreach (var prenda in Model)
+        {
+            var diasSinUso = (DateTime.Now - prenda.FechaUltimoUso).Days;
+            <div class="col-sm-6 col-md-4 col-lg-3 prenda-card animate-in"
+                 data-categoria="@prenda.Categoria">
+                <div class="card border-0 shadow-sm h-100">
+                    @if (!string.IsNullOrEmpty(prenda.FotoUrl))
+                    {
+                        <img src="@prenda.FotoUrl" alt="@prenda.Nombre"
+                             class="card-img-top img-editorial"
+                             style="height:180px;" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center"
+                             style="height:180px; background:var(--gradient-soft); color:var(--mist); font-size:0.875rem; letter-spacing:0.1em;">
+                            <i class="bi bi-image me-1"></i> SIN FOTO
+                        </div>
+                    }
+                    <div class="card-body pb-1">
+                        <h6 class="fw-semibold mb-1" style="font-family:var(--font-display); font-size:0.9rem;">@prenda.Nombre</h6>
+                        <p class="mb-1" style="font-size:0.75rem; color:var(--slate);">
+                            @prenda.Categoria &middot; @prenda.Color &middot; @prenda.Talla
+                        </p>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @if (prenda.EnDesuso)
+                            {
+                                <span class="badge bg-blush">En desuso</span>
+                            }
+                            @if (diasSinUso >= 90 && !prenda.EnDesuso)
+                            {
+                                <span class="badge bg-warning">
+                                    @diasSinUso dias sin uso
+                                </span>
+                            }
+                        </div>
+                        @if (diasSinUso >= 90 && !prenda.EnDesuso)
+                        {
+                            <p class="mt-2 mb-0 small" style="color:var(--warning);">
+                                Ya no la usas?
+                                <a asp-controller="Donacion" asp-action="Lote" class="fw-semibold"
+                                   style="color:var(--orchid-deep); text-decoration:underline; text-underline-offset:2px;">
+                                    Donala
+                                </a>
+                            </p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex gap-1 pb-3 flex-wrap"
+                         style="border-top:1px solid var(--border-light) !important;">
+                        <a asp-action="Detalle" asp-route-id="@prenda.Id"
+                           class="btn btn-sm px-3 btn-blush">
+                            Ver
+                        </a>
+                        <form asp-action="ToggleEstadoUso" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@prenda.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary px-3"
+                                    title="@(prenda.EnDesuso ? "Volver a usar" : "Marcar en desuso")">
+                                @(prenda.EnDesuso ? "Usar" : "Desuso")
+                            </button>
+                        </form>
+                        <form asp-action="Eliminar" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@prenda.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger px-3"
+                                    onclick="return confirm('Eliminar esta prenda?')">
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.filtro').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filtro').forEach(b => {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+
+                const cat = btn.dataset.categoria;
+                document.querySelectorAll('.prenda-card').forEach(card => {
+                    card.style.display =
+                        cat === 'todos' || card.dataset.categoria === cat
+                            ? '' : 'none';
+                });
+            });
+        });
+    </script>
+}
