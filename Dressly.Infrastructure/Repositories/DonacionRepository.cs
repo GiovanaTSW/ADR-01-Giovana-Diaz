@@ -37,6 +37,14 @@ public class DonacionRepository : IDonacionRepository
         return data.PuntosONG;
     }
 
+    public async Task AddPuntoONGAsync(PuntoONG punto)
+    {
+        var data = await GetDataAsync();
+        punto.Id = data.PuntosONG.Any() ? data.PuntosONG.Max(p => p.Id) + 1 : 1;
+        data.PuntosONG.Add(punto);
+        await SaveDataAsync(data);
+    }
+
     public async Task AddLoteAsync(LoteDonacion lote)
     {
         var data = await GetDataAsync();

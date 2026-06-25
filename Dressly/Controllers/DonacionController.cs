@@ -38,6 +38,15 @@ public class DonacionController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AgregarPuntoONG(string nombre, string direccion, string telefono, double? latitud, double? longitud)
+    {
+        await _donaciones.AgregarPuntoONGAsync(nombre, direccion, telefono, latitud, longitud);
+        TempData["PuntoONGCreado"] = true;
+        return RedirectToAction(nameof(Lote));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Lote(List<int> prendaIds, int puntoONGId)
     {
         if (!prendaIds.Any())

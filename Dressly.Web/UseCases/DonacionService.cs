@@ -24,6 +24,20 @@ public class DonacionService : IDonacionService
     public Task<List<PuntoONG>> GetPuntosONGAsync()
         => _donaciones.GetPuntosONGAsync();
 
+    public async Task<PuntoONG> AgregarPuntoONGAsync(string nombre, string direccion, string telefono, double? latitud, double? longitud)
+    {
+        var punto = new PuntoONG
+        {
+            Nombre = nombre,
+            Direccion = direccion,
+            Telefono = telefono,
+            Latitud = latitud ?? 0,
+            Longitud = longitud ?? 0
+        };
+        await _donaciones.AddPuntoONGAsync(punto);
+        return punto;
+    }
+
     public async Task RegistrarDonacionAsync(int usuarioId, List<int> prendaIds, int puntoONGId)
     {
         var lote = new LoteDonacion

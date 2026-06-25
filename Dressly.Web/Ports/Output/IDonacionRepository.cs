@@ -7,6 +7,7 @@ public interface IDonacionRepository
     Task<List<LoteDonacion>> GetLotesByUsuarioIdAsync(int usuarioId);
     Task<LoteDonacion?> GetLoteByIdAsync(int id);
     Task<List<PuntoONG>> GetPuntosONGAsync();
+    Task AddPuntoONGAsync(PuntoONG punto);
     Task AddLoteAsync(LoteDonacion lote);
     Task UpdateLoteAsync(LoteDonacion lote);
     Task DeleteLoteAsync(int id);

@@ -1,14 +1,60 @@
+// Dressly.Web/Program.cs
+// ─────────────────────────────────────────────────────────────────────────────
+// AQUÍ enchufas el Adapter que quieras usar para cada entidad.
+// Domain y Application NO se tocan — solo cambia este archivo.
+// ─────────────────────────────────────────────────────────────────────────────
+
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
 using Dressly.Application.UseCases;
 using Dressly.Domain.DomainServices;
+using Dressly.Infrastructure.Data;
+using Dressly.Infrastructure.Repositories;
 using Dressly.Infrastructure.Services;
-using Dressly_MVC.Repositories;
+using Dressly_MVC.Repositories; // ← necesario para Bloque A (JSON)
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Autenticación
+// ── 1. Carpeta de datos ───────────────────────────────────────────────────────
+var dataFolder = Path.Combine(builder.Environment.WebRootPath, "data");
+Directory.CreateDirectory(dataFolder);
+
+// Ruta SQLite
+var sqlitePath = builder.Configuration.GetConnectionString("Sqlite") ?? "Data Source=dressly.db";
+
+
+// ── 2. Elige tu Adapter ───────────────────────────────────────────────────────
+// Descomenta el bloque que quieras y comenta los otros dos.
+// ¡Las interfaces (Ports) no cambian!
+
+// ▶ Bloque A — JSON  ← activo ahora
+builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddSingleton<IPrendaRepository, PrendaRepository>();
+builder.Services.AddSingleton<IOutfitRepository, OutfitRepository>();
+builder.Services.AddSingleton<IDonacionRepository, DonacionRepository>();
+
+// ▶ Bloque B — CSV
+/*
+builder.Services.AddSingleton<IUsuarioRepository, CsvUsuarioRepository>();
+builder.Services.AddSingleton<IPrendaRepository, CsvPrendaRepository>();
+builder.Services.AddSingleton<IOutfitRepository, CsvOutfitRepository>();
+builder.Services.AddSingleton<IDonacionRepository, CsvDonacionRepository>();
+*/
+
+// ▶ Bloque C — SQLite
+/*
+builder.Services.AddDbContext<SqliteDbContext>(options =>
+    options.UseSqlite(sqlitePath));
+builder.Services.AddScoped<IUsuarioRepository, SqliteUsuarioRepository>();
+builder.Services.AddScoped<IPrendaRepository, SqlitePrendaRepository>();
+builder.Services.AddScoped<IOutfitRepository, SqliteOutfitRepository>();
+builder.Services.AddScoped<IDonacionRepository, SqliteDonacionRepository>();
+*/
+
+
+// ── 3. Autenticación ──────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -17,20 +63,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Auth/Login";
     });
 
-// Repositorios (JSON)
-builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddSingleton<IPrendaRepository, PrendaRepository>();
-builder.Services.AddSingleton<IOutfitRepository, OutfitRepository>();
-builder.Services.AddSingleton<IDonacionRepository, DonacionRepository>();
-
-// Infrastructure Services
+// ── 4. Infrastructure Services ────────────────────────────────────────────────
 builder.Services.AddSingleton<IAlmacenamientoImagenes, FileSystemFotoService>();
 
-// Domain Services
+// ── 5. Domain Services ────────────────────────────────────────────────────────
 builder.Services.AddScoped<IColorimetriaService, ColorimetriaService>();
 builder.Services.AddScoped<IPerfilConocimientoService, PerfilConocimientoService>();
 
-// Use Cases
+// ── 6. Use Cases ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISeedService, SeedService>();
 builder.Services.AddScoped<IPrendaService, PrendaService>();
@@ -43,9 +83,15 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Seed datos por defecto
+// ── 7. Seed ───────────────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
+    // Descomenta solo si el Bloque C (SQLite) está activo
+    /*
+    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+    db.Database.EnsureCreated();
+    */
+
     var auth = scope.ServiceProvider.GetRequiredService<IAuthService>();
     await auth.SeedDefaultUserAsync();
 
@@ -66,7 +112,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

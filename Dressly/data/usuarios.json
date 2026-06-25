@@ -58,5 +58,25 @@
       "FotoUrl": "/uploads/df33c7d7-e4e3-432d-a0e7-60cff483db48_result.jpg"
     },
     "Prendas": []
+  },
+  {
+    "Id": 4,
+    "Nombre": "Astrit",
+    "Email": "astrit@gmail.com",
+    "PasswordHash": "jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI=",
+    "Perfil": {
+      "Id": 4,
+      "TipoCuerpo": "Rectangulo",
+      "TonoPiel": "medio",
+      "SubtonoPiel": "Fr\u00EDo",
+      "IntensidadCabello": "Oscuro",
+      "ColorOjos": "Marr\u00F3n oscuro",
+      "Colorimetria": "Invierno",
+      "Contraste": "Medio",
+      "Altura": 1.50,
+      "UsuarioId": 4,
+      "FotoUrl": "/uploads/fd22c38d-58c6-422a-b6fd-8cd182550e8a_result.jpg"
+    },
+    "Prendas": []
   }
 ]

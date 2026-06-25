@@ -32,9 +32,9 @@ public class PerfilConocimientoService : IPerfilConocimientoService
                 "Capas voluminosas sin estructura"
             }
         },
-        ["Triángulo"] = new()
+        ["Triangulo"] = new()
         {
-            Nombre = "Triángulo (Pera)",
+            Nombre = "Triangulo (Pera)",
             Descripcion = "Caderas más anchas que los hombros, con la cintura marcada. El peso se concentra en la parte inferior del cuerpo.",
             Caracteristicas = new()
             {
@@ -59,9 +59,9 @@ public class PerfilConocimientoService : IPerfilConocimientoService
                 "Pantalones clareados o con estampados en la parte inferior"
             }
         },
-        ["Triángulo invertido"] = new()
+        ["Triangulo invertido"] = new()
         {
-            Nombre = "Triángulo invertido",
+            Nombre = "Triangulo invertido",
             Descripcion = "Hombros más anchos que las caderas, con una silueta que se estrecha hacia abajo. La parte superior del cuerpo es la más prominente.",
             Caracteristicas = new()
             {
@@ -86,9 +86,9 @@ public class PerfilConocimientoService : IPerfilConocimientoService
                 "Prendas muy ajustadas en la parte inferior"
             }
         },
-        ["Rectángulo"] = new()
+        ["Rectangulo"] = new()
         {
-            Nombre = "Rectángulo",
+            Nombre = "Rectangulo",
             Descripcion = "Hombros y caderas del mismo ancho con poca definición de cintura. La silueta es recta y equilibrada.",
             Caracteristicas = new()
             {
