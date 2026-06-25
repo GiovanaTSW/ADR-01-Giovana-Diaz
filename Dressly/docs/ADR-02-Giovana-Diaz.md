@@ -1,138 +1,97 @@
 # ADR-02-Giovana-Diaz
 
-# ADR-02: Adopción de Arquitectura Monolítica en Capas para el Sistema Dressly
+# ADR-02: Adopción de Arquitectura Hexagonal para Dressly
 
 | Campo  | Valor |
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
-| Fecha  | 05/06/2026 |
+| Fecha  | Viernes 11 de junio de 2026 |
 | Estado | `Propuesto` |
 
 ---
 
 ## Contexto
 
-Dressly es una aplicación web desarrollada en .NET Core 10 que digitaliza el guardarropa personal mediante fotografías reales de las prendas. A partir de ese inventario, genera sugerencias automáticas de outfits basadas en colorimetría y fisonomía del usuario, y facilita la donación de prendas en desuso promoviendo la economía circular.
+Dressly es una aplicación web desarrollada en .NET Core 10 que busca resolver el agobio diario de elegir un outfit, el desorden del guardarropa y el hiperconsumismo textil. El sistema gestiona el inventario de prendas mediante fotos reales, genera sugerencias de outfits basadas en colorimetría y fisonomía del usuario, y facilita la donación de ropa en desuso a redes de ONGs promoviendo la economía circular.
 
-El proyecto es de desarrollo unipersonal en etapa académica, con un horizonte de entrega de corto plazo. La persistencia se resuelve mediante archivos JSON locales y el despliegue final se realizará sobre infraestructura AWS (instancia EC2 con almacenamiento en S3).
+En el primer ADR se optó por una arquitectura en capas (Presentación -> Negocio -> Datos) como decisión inicial, justificada por la velocidad de configuración y la calidad estructural para el arranque del proyecto académico; sin embargo, al avanzar con el desarrollo surgieron nuevos requerimientos que esa arquitectura no puede satisfacer sin modificar el núcleo del sistema:
 
-El sistema ha avanzado en su diseño lógico y técnico; sin embargo, un sólo diagrama de arquitectura o una descripción plana del código no es suficiente para responder a ciertas inquietudes que surjan del proyectos:
+- Principalmente se requiere desplegar Dressly en un servidor AWS (Amazon EC2 / ECS), lo que implica integrar proveedores de infrastructura cloud como Amazon RD, Amazon S3 y APIs externas de ONGs.
+- El sistema debe soportar múltiples tipos de persistencia de forma intercambiable: archivos JSON en memoria para el desarrollo local, Amazon RDS o DynamoDB para producción, y Amazon S3 para almacenamiento de imágenes.
+- La lógica del negocio (reglas de colorimetría, generación de outfits, gestión de donaciones debe poder porbarse de forma aislada sin depender de infrastructura real.
 
-1. El usuario final y el cliente necesitan comprender la funcionalidad y qué módulos resuelven sus necesidades.
-2. Los desarrolladores necesitan saber cómo estructurar físicamente sus clases y proyectos en .NET.
-3. El arquitecto requiere visualizar cómo se comporta el sistema bajo concurrencia y cómo interactúan las capas dinámicamente.
-4. El equipo de DevOps/Sysadmin necesita entender la infrastructura física en la nube para el despliegue.
-
-Para resolver esta brecha de comunicación, se requiere adoptar una metodología formal que represente el sistema desde múltiples prespectivas complementarias, evitando dejar a cualquier audiencia sin respuesta.
+En la arquitectura en capas, cambiar el proveedor de datos o agregar soporte cloud implica modificar directamente la capa de negocio, violando el principio de que el dominio no debe depender de detalles de infrastructura. Esto hace necesario adoptar un estilo arquitectónico que desacople el dominio desde el diseño, permitiendo que los detalles de infrastructura sean intercambiables sin afectar la lógica dentral del sistema.
 
 ---
 
 ## Restricciones 
 
-- El proyecto de desarrollo académico unipersonal con tiempos de entrega acotados.
-- La persistencia resuelta con archivos JSON locales (sin motor de base de datos relacional).
-- Despligue planificado en AWS EC2 + S3; no se requiere escalado horizontal en esta fase.
-- La plataforma de desarrollo es .NET Core 10 con el patrón MVC como punto de entrada.
-- Coherencia absoluta: los módulos identificados en las responsabilidades del negocio deben mapearse directamente al código y la infrastructura real descrita.
-  
+Las restricciones de este proyecto académico, principalmente se cuenta con un tiempo limitado para la entrega y avances para el desarrollo del sistema; de igual manera, el enfoque del proyecto, Dressly, debe centrarse principalmente para la verificar de forma eficiente del flujo de los datos como:
+
+- El estilo del usuario
+- Gestión del inventario
+- Inteligencia para la vestimenta
+- El apartado para el módulo de economía circular
+
 ---
 
 ## Decisión
+Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura hexagonal (Ports and Adapaters) para el desarrollo del proyecto, reemplazando la arquitectura en capas establecida anteriormente.
 
-Para este proyecto se adopta formalmente el Modelo de Vistas, las cuales son la lógica, desarrollo, proceso y despliegue, como el mecanismo que permite la gestión para definir, diseñar y documentar la arquitectura de Dressly.
+La arquitectura hexagonal organiza el sistema en tres zonas:
+- *Dominio:* contiene toda la lógica de negocio pura, pues están las reglas de estilo, colorimtería, gestión de prendas y donaciones. No depende de ningún framework, base de datos ni protocolo de red.
+- *Puertos:* Interfaces C# que definen los contratos de comunicación de dominio, los puertos definen cómo el exterior invoca al dominio. Los puertos de salida definen qué servicios externos necesita el dominio.
+- *Adaptadores:* implementaciones concretas de los puertos, intercambiables sin tocar el dominio.
 
-### 1. Vista Lógica (¿Qué hace el sistema?)
-En esta vista muestra la descomposición funcional de Dressly en sus cuatro áreas de dominio principales como componentes conceptuales de negocio independientes:
 
-- *Módulo de Catálogo de Prendas:* iventario y categorización.
-- *Módulo de Inteligencia de Outfits:* Algoritmos de combinación estilística.
-- *Módulo de Perfil y Biometría:* Características físicas del usuario.
-- *Módulo de Economía Circular:* Directorio de donaciones y ONGs.
+### ¿Por qué he optado por esta decisión?
 
-### 2. Vista de Desarrollo (¿Cómo está organizador el código?)
-Muestra la organización del código en la solución .NET de tres capas. Mapea la estructura física de proyectos para garantizar que las dependencias apunten ahcie el núcleo de negocio:
+Se eligió esta arquitectura porque permite resuelve directamente los tres problemas identificador en el contexto:
 
-- *Dressly.Web* (Presentación)
-- *Dressly.Domain* (Lógica/Negocio pura y contratos de repositorios)
-- *Dressly.Infrastructure* (Persistencia local en JSON / AWS S3)
-
-### 3. Vista de Procesos (¿Cómo se comporta en tiempo de ejecución?)
-Describe la interacción dinámica y la secuencia de llamadas síncronas/asíncronas en un caso de uso prioritario: **Generar una sugerencia de Outfit compatible**
-
-- El usuario interactúa con la presentación -> Se invoca al servicio de Dominio -> se consultan las prendas mediante el repositorio -> se computa la colorimetría -> se retorna el resultado.
-
-### 4. Vista de Despliegue (¿Dónde corre físicamente?)
-Describe el mapa de infrastructura física planificado en Amazon Web Services (AWS) para soportar el monolito en capas:
-
-- Una instancia EC2 para la aplicación MVC.
-- Un Bucket S3 para el almacenamiento de imágenes de prendas.
-- Aislamiento de red mediante una VPC con accesos controlados por Security Groups.
-
-## ¿Por qué se optó por esa decisión?
-La separación de esta documentación en cuatro perspectivas diferenciadas se justifica por los siguientes motivos técnicos y de comunicación:
-
-Justificación de la Vista Lógica (Interesados: Clientes / Product Owner):
-Permite validar con el cliente que todos los requerimientos funcionales y reglas del negocio (colorimetría, tallas, donaciones) están mapeados a un componente específico, abstrayéndolos de la complejidad técnica del código en C#.
-
-- Vista de Desarrollo (Interesados: Desarrolladores / Programadores):
-Establece directrices de codificación estrictas para el equipo de desarrollo. Al estructurar la vista física de las capas en .NET, se garantiza visualmente que la capa de Presentación y de Infraestructura dependan de la capa de Dominio, impidiendo la creación accidental de dependencias circulares u "organizaciones espagueti".
-
-- Vista de Procesos (Interesados: Arquitecto de Software / QA):
-Es indispensable para modelar la concurrencia, los tiempos de respuesta y la comunicación entre capas. Al mapear el flujo de generación de outfits, se puede identificar dónde ocurren cuellos de botella y cómo viajan los datos desde la interfaz de usuario hasta los adaptadores de datos.
-
-- Vista de Despliegue (Interesados: DevOps / Administradores de Sistemas):
-La aplicación requiere almacenar imágenes de prendas y archivos JSON. Justificamos modelar el despliegue físico para dimensionar los costos de los servidores EC2 de AWS, planificar las políticas de seguridad de red y configurar el almacenamiento externo persistente en buckets S3 antes de realizar cualquier instalación.
+- **Desacoplamiento de infrastructura:** el dominio de Dressly no conoce si los datos se guardan en JSO, RDS o DynamoDB. La lógica de colorimetría y generación de outfits puede desarrollarse, probarse y modificarse completamente independiente del proveedor de persistencia.
+- **Soporte para múltiples bases de datos:** se pueden registrar distintos adaptadores según el entorno mediante inyección de dependencias, sin cambiar una sola línea del dominio.
+- **Despliegue en AWS sin fricción:** la capa de infrastructura (adaptadores AWS) se configura de forma independiente. La aplicación arranca con adaptadores locales en desarrollo y con adaptadores cloud en producción usando variables de entorno, sin que el dominio sepa en cuál entorno se encuentra.
 
 ---
+## Alternativas consideradas y la razón del por qué las descarté para el proyecto
 
-### Alternativas consideradas y la razón del por qué las descarté para el proyecto
-
-1. **Documentación con un Digrama de Contexto Único (Caja Negra).**
-   - **Razón de descarte:** Es demasiado genérico, aunque es excelente para el cliente, pues este no proporciona información acerca de cómo se debe de estructurar los proyectos en .NET ni orienta sobre el aprovisionamiento de recursos en AWS.
-     
-2. **Uso del Modelo C4 en sus Niveles completos**
-   - **Razón de descarte:** Si bien el modelo C4 es una excelente herramienta para diagramar el código (Nivel 3 y 4), no provee de forma nativa vistas específicas para la infraestructura física de red ni para analizar los flujos dinámicos de procesos temporales con la flexibilidad que ofrece el modelo que estoy escogiendo para los requerimientos de la asignatura.
-    
+- *Arquitectura en capas:* fue la decisión principal para mi proyecto pero he decidido descartarla porque genera un acomplamiento directo entre la lógica de negocio y la infrastructura; es decir, cuando necesite cambiar el proveedor de base de datos o agregar un soporte para AWS implicaría modificar la capa de negocio. No cumple con el requerimiento de múltiples adaptadores de persistencia intercambiables.
+- *Microservicios:* permite aisla cada módulo (inventario, donación, sugerencias) en servicios independientes. Se descarta porque introduce una complejidad operativa alta, pues la comunicación entre servicios, gestión de red distribuida, múltiples despliegues, que está fuera del alcance del proyecto académico en esta fase.
+- *Serverless (AWS Lambda):* permite ejecutar funciones sin administrar servidores, ideal para el módulo de sugerencias de outfits. Se descarta porque el modelo sin estado de Lambda no se adapta bien a la gestión de sesiones y al flujo continuo del guardarropa personal. Podría incorporarse como adaptador específico en una fase posterior.
+- *Event-Driven:* adecuada para disparar notificaciones basadas en el contador de usos de una prenda o la fecha de última vez usada. Se descarta porque requiere implementar un broker de eventos (SNS/SQS en AWS) que añade complejidad de infrastructura innecesaria en la fase actual.
+  
 ---
 
 ## Consecuencias
 
-### Lo que gano (Beneficios)
+### Lo que gano
 
-- **Comunicación eficaz:** Cada interesado consulta la perspectiva técnica que le compete directamente.
-- **Mantenibilidad:** El código .NET se mantiene limpio y ordenado siguiendo el sieño trazado.
-- **Alineación con la rúbrica:** Cumplimiento estricto de las4 vistas requeridas para la materia con tecnología concreta definida.
+- El dominio de Dressly es completamente independiente de la infrastructura: se puede desarrollar, probar y modificar sin depender de AWS ni de ningún proveedor de base de datos.
+- Cambiar entre JSON (desarrollo) y RDS/DynamoDB (producción) es una configuración de inyección de dependencias, no un cambio de código en el dominio.
+- El despliegue en AWS EC2/ECS se vuelve una decisión de infrastructura, no arquitectónica, el dominiono no sabe en qué entorno está corriendo.
+- La lógica de colorimetría, generación de outfits y donación queda protegida de cambios tecnológicos externos: si mañana se cambia S3 por otro proveedor de almacenamiento, solo se escribe un nuevo adaptador.
+- El ritmo de desarrollo es más fluido proque se puede trabajar localmente con JSON y mocks sin necesitar conexión a AWS en ningún momento del desarrollo.
 
-### Lo que sacrifico o asumo (Limitaciones)
 
-- **Esfuerzo de sincronización:** Cualquier modificación posterior en las funcionalidades o en el código fuente de .NET requerirá actualizar manualmente los diagramas en draw.io para evitar que la documentación se vuelva obsoleta.
+### Lo que sacrifico o asumo
 
+- Al seguir siendo un monolito, si el módulo de análisis de imágenes presenta un fallo crítico, todo el sistema puede verse afectado hasta que se reinicie el servidor.
+- La estructura inicial del proyecto requiere más planificación que una arquitectura en capas: es necesario definir los puertos antes de implementar los adaptadores, lo que implica un mayor esfuerzo de diseño al inicio.
+- Para el equipo, la curva de aprendizajes es mayor que con capas tradicionales, pues el patrón de puertos y adaptadores requiere comprender la separación entre contrato e implementación.
+- Si el proyecto no crece más allá del alcance académico, parte de la flexibilidad ganada (múltiples adaptadores, despliegue en AWS) no llegará a usarse en la práctica.
+  
+---
+
+## Diagrama
+
+<img width="1324" height="1124" alt="Diagrama_Hexagonal" src="https://github.com/user-attachments/assets/521a936b-1f23-476a-89e8-adbd0ba5b7a5" />
+
+
+He decidido implementar mi diagrama de forma circular por la facilidad de realización y al investigar, un diagrama hexagonal es más conveniente que se utilice de forma circular por la implementación de los puertos y los adaptadores, pues no es necesario que tenga una implementación de seis adaptadores.
 
 ---
 
-## Diagramas de las vistas
+## Declaración de uso de inteligencia artificial
 
-### Vista lógica
-<img width="621" height="541" alt="vista_logica_original drawio" src="https://github.com/user-attachments/assets/dee6516b-6279-466f-9cce-f4ddbcb5d35b" />
+Para el desarrollo de este ADR se utilizó Claude *(Antropic)* como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly con propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
 
-
-### Vista de Desarrollo
-<img width="891" height="1081" alt="Desarrollo drawio" src="https://github.com/user-attachments/assets/22a095b1-abf8-4d94-81a7-88ab7dba6dd3" />
-
-### Vista de Procesos
-<img width="541" height="691" alt="Procesos drawio" src="https://github.com/user-attachments/assets/701415b9-d589-49f7-9bf1-3e745db8c33b" />
-
-
-### Vista de Despliegue
-<img width="1571" height="1600" alt="WhatsApp Image 2026-06-05 at 9 13 57 PM" src="https://github.com/user-attachments/assets/c0238b51-1f69-4f3e-8f8b-9ca6f324a6b8" />
-
----
-
-## Declaración de Uso de IA
-Se declara de manera formal y honesta el uso de asistencia de Inteligencia Artificial (IA) en este proyecto:
-
-- *Autoría Intelectual:* La arquitectura monolítica en capas, los Bounded Contexts (Catálogo, Inteligencia, Perfil y Economía) y la estructura de directorios en .NET 10 fueron diseñados por la autora.
-
-- *Soporte de IA Generativa:* Se utilizó exclusivamente para traducir la estructura física y lógica de la aplicación al formato de diagramación Mermaid (permitiendo su renderizado nativo en GitHub) y para optimizar el formato Markdown del ADR-02.
-
-Todos los diagramas y textos generados con asistencia de IA fueron auditados, validados y ajustados por la autora para asegurar su veracidad técnica con el código del proyecto.
