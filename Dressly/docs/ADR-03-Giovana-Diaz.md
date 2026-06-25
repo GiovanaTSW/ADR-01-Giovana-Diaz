@@ -63,30 +63,32 @@ Cada módulo se modela como un conjunto de **entidades y reglas de negocio puras
 </div>
 
 ### 2. Vista de Desarrollo (¿Cómo está organizado el código?)
-La solución .NET se reorganiza en proyectos alineados al hexagono:
+La solución .NET se organiza en cuatro proyectos alineados al hexágono:
 
 - **Dressly.Domain**
-    - *Entidades:* Prenda, Outift, PerfilUsuario, Donación.
-    - Lógica pura de colorimetría, reglas de combinación y reglas de donación.
+    - *Entidades:* `Prenda`, `Outfit`, `Usuario`, `PerfilFisico`, `LoteDonacion`, `PuntoONG`, `ColorimetriaInfo`, `TipoCuerpoInfo`, `ContrasteInfo`.
+    - Lógica pura de colorimetría y reglas de combinación: `ColorimetriaService`, `PerfilConocimientoService`.
     - Sin referencias a ningún otro proyecto.
 
-- **Dressly.Application**
-    - Casos de uso (Use Cases / Services): Generar SugerenciaOutfit, RegistrarPrenda, PublicarDonación, etc.
-    - **Puertos de entrada** (interfaces que exponen los casos de uso, ej. `IOutfitService`).
-    - **Puertos de salida** (interfaces que el dominio necesita, ej. `IPrendaRepository`, `IAlmacenamientoImagenes`, `INotificadorDonaciones`).
-    - Depende únicamente de Dressly.Domain.
+- **Dressly.Web** *(proyecto de aplicación — `Dressly.Application.csproj`)*
+    - Casos de uso: `AuthService`, `PrendaService`, `OutfitService`, `PerfilService`, `DonacionService`, `UsuarioService`, `SeedService`.
+    - **Puertos de entrada** (`Ports/Input/`): `IAuthService`, `IPrendaService`, `IOutfitService`, `IPerfilService`, `IDonacionService`, `IUsuarioService`, `ISeedService`, `IAlmacenamientoImagenes`.
+    - **Puertos de salida** (`Ports/Output/`): `IPrendaRepository`, `IOutfitRepository`, `IDonacionRepository`, `IUsuarioRepository`.
+    - Depende únicamente de `Dressly.Domain`.
 
- - **Dressly.Infrastructure**
-    -  Implementaciones concretas de los puertos de salida.
-    -  `JsonPrendaRepository`, `JsonOutfitRepository`, `JsonDonacionRepository` (persistencia en archivos JSON).
-    - `S3AlmacenamientoImagenes` (adaptador para AWS S3).
-    - Depende de Dressly.Application (implementa sus interfaces) y de Dressly.Domain.
-  
-- **Dressly.Web**
-    - Controladores y Vistas MVC.
-    - Traducen peticiones HTTP en llamdas a los puertos de entrada (casos de uso de Dressly.Application).
-    - Configura la inyección de dependencias: conecta los puertos con sus adaptadores concretos (`JsonPrendaRepository`, `S3AlmacenamientoImagenes`).
-    - Depende de Dressly.Application; no contiene lógica de negocio.
+- **Dressly.Infrastructure**
+    - Implementaciones concretas de los puertos de salida, organizadas en tres familias de adaptadores intercambiables:
+        - **JSON:** `JsonRepository` (base), `PrendaRepository`, `OutfitRepository`, `DonacionRepository`, `UsuarioRepository`.
+        - **CSV:** `CsvRepository` (base), `CsvPrendaRepository`, `CsvOutfitRepository`, `CsvDonacionRepository`, `CsvUsuarioRepository`.
+        - **SQLite:** `SqliteDbContext` (EF Core), `SqlitePrendaRepository`, `SqliteOutfitRepository`, `SqliteDonacionRepository`, `SqliteUsuarioRepository`.
+    - `FileSystemFotoService`: adaptador de salida para almacenamiento local de imágenes de prendas.
+    - Depende de `Dressly.Web` (implementa sus puertos) y de `Dressly.Domain`.
+
+- **Dressly** *(proyecto web — `Dressly.Web.csproj`)*
+    - Controladores MVC: `AuthController`, `PrendaController`, `OutfitController`, `PerfilController`, `DonacionController`, `UsuarioController`.
+    - ViewModels y Vistas Razor.
+    - `Program.cs`: configura la inyección de dependencias conectando cada puerto con el adaptador deseado (JSON, CSV o SQLite) mediante bloques comentables, sin modificar el dominio ni la aplicación.
+    - Depende de `Dressly.Web` (Application); no contiene lógica de negocio.
 
 <div align="center">
   <h2>Diagrama de vista de desarrollo</h2>
@@ -126,14 +128,14 @@ flowchart LR
 ### 3. Vistas de Procesos (¿Cómo se comporta en tiempo de ejecución?)
 Caso de uso prioritario: **Generar una sugerencia de Outfit compatible**
 
-1. El usuario interactúa con **Dressly.Web** (adaptador de entrada)
-2. El controlador invoca al puerto de enetrada `IOutfitService.GenerarSugerencia(...)` definido en Dressly.Application.
-3. El caso de uso, dentro de Dressly.Application, ejecuta la lógica orquestadora y solicita las prendas a través del puerto de salida `IPrendaRepository`.
-4. **Dressly.Infrastructure** resuelve ese puerto mediante `JsonPrendaRepository`, leyendo el archivo JSON correspondiente.
-5. Las entidades de **Dressly.Domain** computan la colorimetría y las reglas de compatibilidad de outfits (lógica pura, sin dependencias externas).
-6. El resultado regresa al caso de uso, que lo entrega al puerto de entrada, y este controlador, que lo renderiza en la vista.
+1. El usuario interactúa con **Dressly** (adaptador de entrada MVC).
+2. `OutfitController` invoca al puerto de entrada `IOutfitService.GenerarSugerenciaAsync(usuarioId, ocasion)` definido en `Dressly.Web` (Application).
+3. `OutfitService`, dentro de Application, ejecuta la lógica orquestadora y solicita las prendas disponibles a través del puerto de salida `IPrendaRepository.GetDisponiblesAsync(usuarioId)`.
+4. **Dressly.Infrastructure** resuelve ese puerto en tiempo de ejecución mediante el adaptador configurado en `Program.cs` — puede ser `PrendaRepository` (JSON), `CsvPrendaRepository` (CSV) o `SqlitePrendaRepository` (SQLite) — sin que Application ni Domain lo sepan.
+5. Las entidades y servicios de **Dressly.Domain** (`ColorimetriaService`, `PerfilConocimientoService`) computan la paleta de colores compatible y las reglas de combinación de outfits (lógica pura, sin dependencias externas).
+6. El resultado regresa al caso de uso, que lo entrega al controlador, que lo renderiza en la vista Razor.
 
-La diferencia clave frente al monolito en capas es que el flujo **nunca involucra una implementación concreta.**
+La diferencia clave frente al monolito en capas es que el flujo **nunca involucra una implementación concreta** — el adaptador de persistencia es intercambiable sin tocar Domain ni Application.
 
 <div align="center">
   <h2>Diagrama de vista de procesos</h2>
@@ -142,41 +144,33 @@ La diferencia clave frente al monolito en capas es que el flujo **nunca involucr
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Usuario as Usuario Final
-    participant UI as OutfitController.cs (Dressly.Web)
-    participant UC as GenerarOutfitUseCase.cs (Dressly.Application)
-    participant PortOut as IPrendaRepository.cs (Dressly.Domain - Port)
-    participant Infra as PrendaJsonRepository.cs (Dressly.Infrastructure)
-    participant Domain as ColorimetriaRule.cs (Dressly.Domain - Core)
+    actor U as Usuario
+    participant C as OutfitController
+    participant S as OutfitService
+    participant R as IPrendaRepository
+    participant I as Infrastructure
+    participant D as Dressly.Domain
 
-    Usuario->>UI: Solicita sugerencia de outfit
-    UI->>UC: GenerarOutfitAsync(usuarioId)
-    
-    rect rgb(230, 240, 245)
-        Note over UC, Infra: Inversión de Dependencias (Capa de Persistencia)
-        UC->>PortOut: ObtenerPrendasDisponibles(usuarioId)
-        Note right of PortOut: Resuelto en tiempo de ejecución<br/>por Inyección de Dependencias<br/>en PrendaJsonRepository.cs
-        PortOut->>Infra: ObtenerPrendasDisponibles(usuarioId)
-        Note over Infra: Lee prendas.json del disco local<br/>y deserializa los datos
-        Infra-->>UC: Retorna lista de prendas (Modelos de Dominio)
-    end
-
-    UC->>Domain: Evaluar(prendas, perfilFisico)
-    Note over Domain: Ejecuta algoritmo de colorimetría<br/>y fisonomía (lógica pura,<br/>sin acceso a archivos)
-    Domain-->>UC: Retorna Outfit optimizado
-    
-    UC-->>UI: Retorna Outfit
-    UI-->>Usuario: Renderiza OutfitSugerenciaVM en vista .cshtml
+    U->>C: Solicita sugerencia de outfit
+    C->>S: GenerarSugerenciaAsync(usuarioId, ocasion)
+    S->>R: GetDisponiblesAsync(usuarioId)
+    R->>I: Ejecuta adaptador activo (JSON, CSV o SQLite)
+    I-->>S: Retorna lista de prendas
+    S->>D: ObtenerInfoColorimetria(colorimetria)
+    D-->>S: Retorna paleta de colores compatible
+    S-->>C: Retorna prendas sugeridas
+    C-->>U: Renderiza vista Generar.cshtml
 ```
-<div align = "center">
-    <p>Figura 3: Vista de desarrollo</p>
+
+<div align="center">
+  <p><em>Figura 3: Vista de procesos</em></p>
 </div>
 
 ### 4. Vista de Despliegue (¿Dónde corre físicamente?)
 Se mantiene el mapa de infraestructura física en AWS:
 
-- Una instancia en EC2 ejecutando los cuatro proyectos compilados (Web, Application, Domain, Infrastructure) como un único desplegable.
-- Un Bucket S3 para el almacenamiento de imágenes de prendas, accedido mediante el adaptador `S3AlmacenamientoImagenes`.
+- Una instancia en EC2 ejecutando los cuatro proyectos compilados (Dressly, Dressly.Web, Dressly.Domain, Dressly.Infrastructure) como un único desplegable.
+- El almacenamiento de imágenes de prendas se resuelve mediante `FileSystemFotoService`, guardando los archivos en la carpeta `wwwroot/uploads/` del servidor.
 - Aislamiento de red mediante una VPC con accesos controlados por Security Groups.
 
 <div align="center">
@@ -199,9 +193,6 @@ graph TD
 
     subgraph AWSCloud ["AWS Global Cloud - Region us-east-1"]
 
-        S3Bucket["AWS S3 Bucket - S3AlmacenamientoImagenes - Almacenamiento de fotos de prendas"]
-        class S3Bucket storage;
-
         subgraph AmazonVPC ["Amazon VPC - Aislamiento de Red Privada"]
 
             SecGroup["AWS Security Group - Firewall Virtual, Puerto 443"]
@@ -209,11 +200,11 @@ graph TD
 
             subgraph AWSEC2 ["Instancia AWS EC2 - Ubuntu Linux Server"]
 
-                subgraph Monolito ["Single Deployable File - .NET 10 Runtime"]
-                    App["Dressly App Executable - Web + Application + Domain + Infrastructure"]
+                subgraph Monolito ["Single Deployable File - .NET 8 Runtime"]
+                    App["Dressly App Executable\nDressly + Dressly.Web + Dressly.Domain + Dressly.Infrastructure"]
                 end
 
-                Disk["Disco EBS Local - carpeta data/: prendas.json, usuarios.json, donaciones.json, outfits.json"]
+                Disk["Disco EBS Local\ndata/: prendas.json, usuarios.json, donaciones.json, outfits.json\ndata/: prendas.csv, usuarios.csv, puntosong.csv\ndata/: dressly.db (SQLite)\nwwwroot/uploads/: imágenes de prendas"]
 
             end
             class AWSEC2,Monolito server;
@@ -224,13 +215,12 @@ graph TD
     class AWSCloud aws;
 
     Navegador -->|"Peticiones HTTPS (Puerto 443)"| SecGroup
-    SecGroup -->|"Trafico filtrado y permitido"| App
+    SecGroup -->|"Tráfico filtrado y permitido"| App
     App -->|"Lectura/Escritura Local I/O"| Disk
-    App -->|"Conexion segura via AWS SDK"| S3Bucket
 ```
 
-<div align = "center">
-    <p>Figura 4: Vista de despliegue</p>
+<div align="center">
+  <p><em>Figura 4: Vista de despliegue</em></p>
 </div>
 
 ---
@@ -238,47 +228,22 @@ graph TD
 ## ¿Por qué he optado por esta decisión?
 
 He decidido hacer este cambio principalmente por las siguientes razones:
-1. **Independencia del dominio frente a la persistencia:** Actualmente la persistencia con la que cuenta el programa es mediante archivos JSON locales, pero podría migrar a una base de datos o cambiar de proveedor en cualquier momento, al implementar una arquitectura hexagonal, ese cambio se resuelve creando un nuevo adaptador sin tocar el núcleo de negocio.
-  
-2. Testabilidad del núcleo de negocio.** Tú lógica de colorimetría, reglas de combinación de outfits y reglas de donación pueden probarse de forma aislada, sin depender de MVC, archivos JSON ni AWS.
-   
-3. **Reutilización futura del dominio:** Si en algún momento necesitas otras "entrada" al sistema (una API móvil, un worker que procese imágenes, etc.), todas pueden reutilizar las mismas reglas de negocio definidas en Dressly.Domain sin duplicar código.
-   
-4. ***Coherencia entre el lenguaje del negocio y el código:** El núcleo (Catálogo, Inteligencia de Outfits, Perfil/Biometría, Economía Circular) queda expresado en términos del dominio, sin que conceptos técnicos como JSON, S3 o MVC contaminen esa capa.
 
-5. **Inversión de dependencias real.** A diferencia del monolito en capas, en hexagonal toda dependencia apunta hacia el Dominio, y la Infraestructura depende de las abstracciones (puertos) definidas en Application, esto elimina por diseño las dependencias circulares. 
-   
+1. **Independencia del dominio frente a la persistencia:** La arquitectura hexagonal permite cambiar el mecanismo de persistencia creando un nuevo adaptador sin tocar el núcleo de negocio. Esto ya se comprueba en la implementación actual, donde coexisten tres adaptadores intercambiables (JSON, CSV y SQLite) que se activan desde `Program.cs` sin modificar `Dressly.Domain` ni `Dressly.Web` (Application).
+
+2. **Testabilidad del núcleo de negocio.** La lógica de colorimetría, reglas de combinación de outfits y reglas de donación pueden probarse de forma aislada, sin depender de MVC, archivos JSON, CSV ni SQLite.
+
+3. **Reutilización futura del dominio:** Si en algún momento se necesita otra "entrada" al sistema (una API móvil, un worker que procese imágenes, etc.), todas pueden reutilizar las mismas reglas de negocio definidas en `Dressly.Domain` sin duplicar código.
+
+4. **Coherencia entre el lenguaje del negocio y el código:** El núcleo (Catálogo, Inteligencia de Outfits, Perfil/Biometría, Economía Circular) queda expresado en términos del dominio, sin que conceptos técnicos como JSON, CSV, SQLite o MVC contaminen esa capa.
+
+5. **Inversión de dependencias real.** A diferencia del monolito en capas, en hexagonal toda dependencia apunta hacia el Dominio, y la Infraestructura depende de las abstracciones (puertos) definidas en Application, esto elimina por diseño las dependencias circulares.
+
 ---
 
 ### Alternativas consideradas y la razón del por qué las descarté para el proyecto
 
-- **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
+- **Arquitectura de Microservicios**: la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independientes; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
 
 - **Mantener la arquitectura monolítica en capas (ADR-02 original).**
-   - **Razón de descarte:** Aunque cumplía con las cuatro vistas requeridas, las dependencias fluían de Presentación → Dominio → Infraestructura de forma rígida, dificultando sustituir la persistencia JSON por otra tecnología sin modificar el núcleo de negocio. La arquitectura hexagonal resuelve esto explícitamente mediante puertos.
-
-- **Arquitectura Limpia (Clean Architecture) en su formulación de círculos concéntricos genérica.**
-   - **Razón de descarte:** Es conceptualmente muy similar a la hexagonal y comparte la regla de dependencia hacia el dominio, pero su nomenclatura de capas (Entities, Use Cases, Interface Adapters, Frameworks) es menos explícita en cuanto a la simetría entrada/salida que ofrece el lenguaje de "puertos y adaptadores", el cual se ajusta mejor a la necesidad de modelar tanto adaptadores de entrada (Web) como de salida (JSON, S3) de forma simétrica.
-
----
-
-## Consecuencias
-
-### Lo que gano
-
-- **Independencia del dominio:** La lógica de colorimetría y reglas de outfits puede probarse sin archivos JSON, sin MVC y sin AWS.
-- **Sustituibilidad:** Cambiar de persistencia JSON a otra tecnología (o de S3 a otro almacenamiento) implica crear un nuevo adaptador, sin tocar Domain ni Application.
-- **Coherencia con el lenguaje del negocio:** El núcleo expresa Catálogo, Outfits, Perfil y Economía Circular sin contaminación técnica.
-- **Alineación con la rúbrica:** Se mantienen las 4 vistas requeridas, ahora reinterpretadas bajo el enfoque hexagonal.
-
-### Lo que sacrifico o asumo
-
-- **Mayor cantidad de proyectos e interfaces:** Pasar de 3 a 4 proyectos (.NET) y la introducción de puertos añade complejidad estructural inicial respecto al monolito en capas.
-- **Esfuerzo de migración:** El código existente de Dressly.Web debe reorganizarse: la lógica de negocio embebida en controladores debe extraerse hacia Dressly.Application y Dressly.Domain.
-- **Esfuerzo de sincronización:** Como en la versión anterior, cualquier cambio funcional requiere actualizar manualmente los diagramas en draw.io/Mermaid.
-
----
-
-> [!NOTE]
-> ## Declaración de uso de IA
-> Para la elaboración de este ADR se utilizó Claude y Gemini como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly son propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
+   - **Razón de descarte:** Aunque cumplía con las cuatro vistas requeridas, las dependencias fluían de Presentación → Dominio → Infraestructura de forma rígida, dificultando sustituir la persistencia JSON por otra tecnología sin modificar el núcleo de negocio.
