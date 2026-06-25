@@ -92,6 +92,32 @@ La solución .NET se reorganiza en proyectos alineados al hexagono:
   <h2>Diagrama de vista de desarrollo</h2>
 </div>
 
+```mermaid
+flowchart LR
+    ROOT["📁 Dressly/"]
+    ROOT --> WEB["📁 Dressly\n(UI Layer)"]
+    ROOT --> APP["📁 Dressly.Web\n(Application)"]
+    ROOT --> DOM["📁 Dressly.Domain\n(Domain)"]
+    ROOT --> INF["📁 Dressly.Infrastructure\n(Infrastructure)"]
+
+    WEB --> C["Controllers/"]
+    WEB --> VM["ViewModels/"]
+    WEB --> V["Views/"]
+    WEB --> DT["data/\n📄 .json / .csv"]
+    WEB --> DOC["docs/\n ADR-01, 02, 03"]
+
+    APP --> PI["Ports/Input/"]
+    APP --> PO["Ports/Output/"]
+    APP --> UC["UseCases/"]
+
+    DOM --> ENT["Entities/"]
+    DOM --> DS["DomainServices/"]
+
+    INF --> REPJ["Repositories/\n🗂 Json* / Csv* / Sqlite*"]
+    INF --> DB["Data/\nSqliteDbContext.cs"]
+    INF --> SRV["Services/\nFileSystemFotoService.cs"]
+```
+
 <div align="center">
   <p><em>Figura 2: Vista de Desarrollo de Dressly</em></p>
 </div>
