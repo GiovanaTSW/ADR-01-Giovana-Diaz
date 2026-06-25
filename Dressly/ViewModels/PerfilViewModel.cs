@@ -1,4 +1,4 @@
-using Dressly_MVC.Models;
+using Dressly.Domain.Entities;
 
 namespace Dressly_MVC.ViewModels;
 

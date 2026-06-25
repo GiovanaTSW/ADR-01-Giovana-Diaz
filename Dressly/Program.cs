@@ -1,6 +1,10 @@
-using Dressly_MVC.Repositories;
-using Dressly_MVC.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Dressly.Application.Ports.Input;
+using Dressly.Application.Ports.Output;
+using Dressly.Application.UseCases;
+using Dressly.Domain.DomainServices;
+using Dressly.Infrastructure.Services;
+using Dressly_MVC.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,23 +17,27 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Auth/Login";
     });
 
-// Repositorios
-builder.Services.AddSingleton<IPrendaRepository, PrendaRepository>();
+// Repositorios (JSON)
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddSingleton<IPrendaRepository, PrendaRepository>();
 builder.Services.AddSingleton<IOutfitRepository, OutfitRepository>();
 builder.Services.AddSingleton<IDonacionRepository, DonacionRepository>();
 
-// Servicios
+// Infrastructure Services
+builder.Services.AddSingleton<IAlmacenamientoImagenes, FileSystemFotoService>();
+
+// Domain Services
+builder.Services.AddScoped<IColorimetriaService, ColorimetriaService>();
+builder.Services.AddScoped<IPerfilConocimientoService, PerfilConocimientoService>();
+
+// Use Cases
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISeedService, SeedService>();
 builder.Services.AddScoped<IPrendaService, PrendaService>();
 builder.Services.AddScoped<IOutfitService, OutfitService>();
 builder.Services.AddScoped<IPerfilService, PerfilService>();
 builder.Services.AddScoped<IDonacionService, DonacionService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddScoped<IFotoService, FotoService>();
-builder.Services.AddScoped<IColorimetriaService, ColorimetriaService>();
-builder.Services.AddScoped<IPerfilConocimientoService, PerfilConocimientoService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<SeedService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -41,8 +49,13 @@ using (var scope = app.Services.CreateScope())
     var auth = scope.ServiceProvider.GetRequiredService<IAuthService>();
     await auth.SeedDefaultUserAsync();
 
-    var seed = scope.ServiceProvider.GetRequiredService<SeedService>();
-    await seed.SeedUserDataAsync(1);
+    var usuarios = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+    var admin = await usuarios.GetByEmailAsync("giovana@dressly.com");
+    if (admin != null)
+    {
+        var seed = scope.ServiceProvider.GetRequiredService<ISeedService>();
+        await seed.SeedUserDataAsync(admin.Id);
+    }
 }
 
 if (!app.Environment.IsDevelopment())

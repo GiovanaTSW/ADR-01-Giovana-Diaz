@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using Dressly_MVC.Models;
-using Dressly_MVC.Services;
+using Dressly.Domain.Entities;
+using Dressly.Application.Ports.Input;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

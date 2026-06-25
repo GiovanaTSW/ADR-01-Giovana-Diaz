@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using Dressly_MVC.Models;
-using Dressly_MVC.Services;
+using Dressly.Domain.Entities;
+using Dressly.Application.Ports.Input;
 using Dressly_MVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +42,18 @@ public class PrendaController : Controller
     {
         if (!ModelState.IsValid) return View(prenda);
         prenda.UsuarioId = UsuarioId;
-        await _prendas.CrearAsync(prenda, foto);
+
+        byte[]? fotoBytes = null;
+        string? fotoNombre = null;
+        if (foto != null && foto.Length > 0)
+        {
+            using var ms = new MemoryStream();
+            await foto.CopyToAsync(ms);
+            fotoBytes = ms.ToArray();
+            fotoNombre = foto.FileName;
+        }
+
+        await _prendas.CrearAsync(prenda, fotoBytes, fotoNombre);
         return RedirectToAction(nameof(Index));
     }
 

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Dressly_MVC.Services;
+using Dressly.Application.Ports.Input;
 using Dressly_MVC.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -10,9 +10,9 @@ namespace Dressly_MVC.Controllers;
 public class AuthController : Controller
 {
     private readonly IAuthService _auth;
-    private readonly SeedService _seed;
+    private readonly ISeedService _seed;
 
-    public AuthController(IAuthService auth, SeedService seed)
+    public AuthController(IAuthService auth, ISeedService seed)
     {
         _auth = auth;
         _seed = seed;
@@ -37,8 +37,8 @@ public class AuthController : Controller
             return View(model);
         }
 
-        var usuario = await _auth.LoginAsync(model.Email, model.Password);
-        if (usuario == null)
+        var (exitoso, usuario) = await _auth.LoginAsync(model.Email, model.Password);
+        if (!exitoso || usuario == null)
         {
             ModelState.AddModelError(string.Empty, "Email o contraseña incorrectos");
             ViewBag.ReturnUrl = returnUrl;
@@ -76,14 +76,13 @@ public class AuthController : Controller
     {
         if (!ModelState.IsValid) return View(model);
 
-        var (exito, error, usuarioId) = await _auth.RegisterAsync(model.Nombre, model.Email, model.Password);
-        if (!exito)
+        var (exitoso, error) = await _auth.RegisterAsync(model.Nombre, model.Email, model.Password);
+        if (!exitoso)
         {
             ModelState.AddModelError(string.Empty, error);
             return View(model);
         }
 
-        await _seed.SeedUserDataAsync(usuarioId);
         return RedirectToAction(nameof(Login), new { returnUrl = "/" });
     }
 

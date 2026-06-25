@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
-using Dressly_MVC.Models;
-using Dressly_MVC.Services;
+using Dressly.Domain.Entities;
+using Dressly.Domain.DomainServices;
+using Dressly.Application.Ports.Input;
 using Dressly_MVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +13,12 @@ public class PerfilController : Controller
 {
     private readonly IPerfilService _perfil;
     private readonly IPerfilConocimientoService _conocimiento;
-    private readonly IFotoService _fotos;
+    private readonly IAlmacenamientoImagenes _fotos;
 
     public PerfilController(
         IPerfilService perfil,
         IPerfilConocimientoService conocimiento,
-        IFotoService fotos)
+        IAlmacenamientoImagenes fotos)
     {
         _perfil = perfil;
         _conocimiento = conocimiento;
@@ -76,7 +77,9 @@ public class PerfilController : Controller
             if (existente?.FotoUrl != null)
                 await _fotos.EliminarAsync(existente.FotoUrl);
 
-            perfil.FotoUrl = await _fotos.GuardarAsync(foto);
+            using var ms = new MemoryStream();
+            await foto.CopyToAsync(ms);
+            perfil.FotoUrl = await _fotos.GuardarAsync(ms.ToArray(), foto.FileName);
         }
         else
         {
@@ -87,7 +90,7 @@ public class PerfilController : Controller
         perfil.Id = existente?.Id ?? UsuarioId;
 
         ModelState.Clear();
-        await _perfil.GuardarPerfilAsync(UsuarioId, perfil, existente);
+        await _perfil.GuardarPerfilAsync(UsuarioId, perfil);
         return RedirectToAction(nameof(Index));
     }
 

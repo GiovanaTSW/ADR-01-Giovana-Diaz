@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Dressly_MVC</RootNamespace>
+  </PropertyGroup>
+
+  <Target Name="KillLockingProcesses" BeforeTargets="BeforeBuild">
+    <Exec Command="taskkill /f /im iisexpress.exe 2&gt;nul || ver &gt; nul" IgnoreExitCode="true" ContinueOnError="true" />
+    <Exec Command="taskkill /f /im Dressly-MVC.exe 2&gt;nul || ver &gt; nul" IgnoreExitCode="true" ContinueOnError="true" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Dressly.Domain\Dressly.Domain.csproj" />
+    <ProjectReference Include="..\Dressly.Web\Dressly.Application.csproj" />
+    <ProjectReference Include="..\Dressly.Infrastructure\Dressly.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

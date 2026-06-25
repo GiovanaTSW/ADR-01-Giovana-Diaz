@@ -13,19 +13,6 @@
     "UsuarioId": 2
   },
   {
-    "Id": 12,
-    "Nombre": "Corbata de seda",
-    "Categoria": "Accesorio",
-    "Color": "rojo",
-    "Talla": "\u00DAnica",
-    "Estacion": "Todo el a\u00F1o",
-    "FotoUrl": "",
-    "VecesUsada": 2,
-    "FechaUltimoUso": "2026-03-11T12:52:13.1019406-06:00",
-    "EnDesuso": true,
-    "UsuarioId": 2
-  },
-  {
     "Id": 13,
     "Nombre": "Pantal\u00F3n de vestir negro",
     "Categoria": "Inferior",
@@ -88,19 +75,6 @@
     "VecesUsada": 2,
     "FechaUltimoUso": "2026-04-20T13:19:20.6038816-06:00",
     "EnDesuso": false,
-    "UsuarioId": 3
-  },
-  {
-    "Id": 12,
-    "Nombre": "Corbata de seda",
-    "Categoria": "Accesorio",
-    "Color": "rojo",
-    "Talla": "\u00DAnica",
-    "Estacion": "Todo el a\u00F1o",
-    "FotoUrl": "",
-    "VecesUsada": 2,
-    "FechaUltimoUso": "2026-03-11T13:19:20.6038826-06:00",
-    "EnDesuso": true,
     "UsuarioId": 3
   },
   {
@@ -282,19 +256,6 @@
     "FotoUrl": "",
     "VecesUsada": 0,
     "FechaUltimoUso": "2026-06-19T14:54:21.0694867-06:00",
-    "EnDesuso": true,
-    "UsuarioId": 1
-  },
-  {
-    "Id": 12,
-    "Nombre": "Corbata de seda",
-    "Categoria": "Accesorio",
-    "Color": "rojo",
-    "Talla": "\u00DAnica",
-    "Estacion": "Todo el a\u00F1o",
-    "FotoUrl": "",
-    "VecesUsada": 2,
-    "FechaUltimoUso": "2026-03-11T14:54:21.0694869-06:00",
     "EnDesuso": true,
     "UsuarioId": 1
   },
