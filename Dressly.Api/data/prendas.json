@@ -1,0 +1,15 @@
+[
+  {
+    "Id": 1,
+    "Nombre": "blusa negra algod\u00F3n",
+    "Categoria": "Superior",
+    "Color": "negro",
+    "Talla": "G",
+    "Estacion": "Todo el a\u00F1o",
+    "FotoUrl": "/uploads/bb349694-bb4b-49b9-a64b-1248daafc825_Captura de pantalla 2026-06-21 203940.png",
+    "VecesUsada": 0,
+    "FechaUltimoUso": "2026-06-25T13:21:41.5538238-06:00",
+    "EnDesuso": false,
+    "UsuarioId": 4
+  }
+]

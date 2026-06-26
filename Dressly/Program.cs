@@ -13,7 +13,6 @@ using Dressly.Domain.DomainServices;
 using Dressly.Infrastructure.Data;
 using Dressly.Infrastructure.Repositories;
 using Dressly.Infrastructure.Services;
-using Dressly_MVC.Repositories; // ← necesario para Bloque A (JSON)
 
 var builder = WebApplication.CreateBuilder(args);
 

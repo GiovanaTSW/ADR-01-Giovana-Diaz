@@ -2,7 +2,7 @@ using System.Text.Json;
 using Dressly.Domain.Entities;
 using Dressly.Application.Ports.Output;
 
-namespace Dressly_MVC.Repositories;
+namespace Dressly.Infrastructure.Repositories;
 
 public class DonacionRepository : IDonacionRepository
 {

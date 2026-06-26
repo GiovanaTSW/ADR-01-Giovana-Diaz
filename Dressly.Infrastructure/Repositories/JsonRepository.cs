@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using Dressly.Application.Ports.Output;
 
-namespace Dressly_MVC.Repositories;
+namespace Dressly.Infrastructure.Repositories;
 
 public class JsonRepository<T> : IRepository<T> where T : class
 {

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Dressly.Api/Dressly.Api.csproj" Id="3426ec41-8934-4973-a9e2-e53aa361629e" />
   <Project Path="Dressly.Domain/Dressly.Domain.csproj" Id="fcc6e692-7020-4830-b8fe-55fb9016c47b" />
   <Project Path="Dressly.Infrastructure/Dressly.Infrastructure.csproj" Id="802a6696-1873-4eef-b380-2f424f107349" />
   <Project Path="Dressly.Web/Dressly.Application.csproj" Id="8089e9c4-dcf2-4992-8c1b-696b6529e100" />
