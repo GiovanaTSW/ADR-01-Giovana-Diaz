@@ -1,4 +1,5 @@
 using Dressly.Domain.Entities;
+using Dressly.Domain.Events;
 using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
 
@@ -8,12 +9,16 @@ public class PrendaService : IPrendaService
 {
     private readonly IPrendaRepository _prendas;
     private readonly IAlmacenamientoImagenes _fotos;
+    private readonly List<IEventObserver<PrendaCreadaEvent>> _prendaCreadaObservers = new();
 
     public PrendaService(IPrendaRepository prendas, IAlmacenamientoImagenes fotos)
     {
         _prendas = prendas;
         _fotos = fotos;
     }
+
+    public void SubscribePrendaCreada(IEventObserver<PrendaCreadaEvent> observer)
+        => _prendaCreadaObservers.Add(observer);
 
     public Task<List<Prenda>> GetPrendasAsync(int usuarioId)
         => _prendas.GetByUsuarioIdAsync(usuarioId);
@@ -30,6 +35,11 @@ public class PrendaService : IPrendaService
             prenda.FotoUrl = await _fotos.GuardarAsync(fotoBytes, fotoNombre);
 
         await _prendas.AddAsync(prenda);
+
+        var evento = new PrendaCreadaEvent(prenda.UsuarioId, prenda.Id, prenda.Nombre, DateTime.Now);
+        foreach (var obs in _prendaCreadaObservers)
+            await obs.HandleAsync(evento);
+
         return prenda;
     }
 

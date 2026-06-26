@@ -1,4 +1,5 @@
 using Dressly.Domain.Entities;
+using Dressly.Domain.Events;
 using Dressly.Domain.DomainServices;
 using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
@@ -13,6 +14,7 @@ public class OutfitService : IOutfitService
     private readonly IUsuarioRepository _usuarios;
     private readonly IPerfilService _perfil;
     private readonly IPerfilConocimientoService _conocimiento;
+    private readonly List<IEventObserver<OutfitGeneradoEvent>> _outfitObservers = new();
 
     public OutfitService(
         IOutfitRepository outfits,
@@ -29,6 +31,9 @@ public class OutfitService : IOutfitService
         _perfil = perfil;
         _conocimiento = conocimiento;
     }
+
+    public void SubscribeOutfitGenerado(IEventObserver<OutfitGeneradoEvent> observer)
+        => _outfitObservers.Add(observer);
 
     public Task<List<Outfit>> GetOutfitsAsync(int usuarioId)
         => _outfits.GetByUsuarioIdAsync(usuarioId);
@@ -168,6 +173,11 @@ public class OutfitService : IOutfitService
 
         await _prendas.SaveAsync(todas);
         await _outfits.AddAsync(outfit);
+
+        var evento = new OutfitGeneradoEvent(usuarioId, outfit.Id, outfit.Nombre, DateTime.Now);
+        foreach (var obs in _outfitObservers)
+            await obs.HandleAsync(evento);
+
         return outfit;
     }
 

@@ -1,4 +1,5 @@
 using Dressly.Domain.Entities;
+using Dressly.Domain.Events;
 using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
 
@@ -8,12 +9,16 @@ public class DonacionService : IDonacionService
 {
     private readonly IDonacionRepository _donaciones;
     private readonly IPrendaService _prendas;
+    private readonly List<IEventObserver<DonacionRegistradaEvent>> _donacionObservers = new();
 
     public DonacionService(IDonacionRepository donaciones, IPrendaService prendas)
     {
         _donaciones = donaciones;
         _prendas = prendas;
     }
+
+    public void SubscribeDonacionRegistrada(IEventObserver<DonacionRegistradaEvent> observer)
+        => _donacionObservers.Add(observer);
 
     public Task<List<LoteDonacion>> GetLotesAsync(int usuarioId)
         => _donaciones.GetLotesByUsuarioIdAsync(usuarioId);
@@ -51,6 +56,10 @@ public class DonacionService : IDonacionService
 
         await _donaciones.AddLoteAsync(lote);
         await _prendas.MarcarEnDesusoAsync(prendaIds);
+
+        var evento = new DonacionRegistradaEvent(usuarioId, lote.Id, prendaIds.Count, DateTime.Now);
+        foreach (var obs in _donacionObservers)
+            await obs.HandleAsync(evento);
     }
 
     public async Task QuitarPrendaDelLoteAsync(int loteId, int prendaId)

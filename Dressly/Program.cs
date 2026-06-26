@@ -10,8 +10,11 @@ using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
 using Dressly.Application.UseCases;
 using Dressly.Domain.DomainServices;
+using Dressly.Domain.Events;
 using Dressly.Infrastructure.Data;
+using Dressly.Infrastructure.Notifications;
 using Dressly.Infrastructure.Repositories;
+using Dressly.Infrastructure.Repositories.Decorators;
 using Dressly.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,33 +27,42 @@ Directory.CreateDirectory(dataFolder);
 var sqlitePath = builder.Configuration.GetConnectionString("Sqlite") ?? "Data Source=dressly.db";
 
 
-// ── 2. Elige tu Adapter ───────────────────────────────────────────────────────
-// Descomenta el bloque que quieras y comenta los otros dos.
-// ¡Las interfaces (Ports) no cambian!
+// ── 2. Factory + Decorator ───────────────────────────────────────────────────
+// El Factory decide el backend (JSON para Development, SQLite para Production)
+// y el Decorator envuelve cada repositorio con logging.
 
-// ▶ Bloque A — JSON  ← activo ahora
-builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddSingleton<IPrendaRepository, PrendaRepository>();
-builder.Services.AddSingleton<IOutfitRepository, OutfitRepository>();
-builder.Services.AddSingleton<IDonacionRepository, DonacionRepository>();
+var env = builder.Environment.EnvironmentName;
 
-// ▶ Bloque B — CSV
-/*
-builder.Services.AddSingleton<IUsuarioRepository, CsvUsuarioRepository>();
-builder.Services.AddSingleton<IPrendaRepository, CsvPrendaRepository>();
-builder.Services.AddSingleton<IOutfitRepository, CsvOutfitRepository>();
-builder.Services.AddSingleton<IDonacionRepository, CsvDonacionRepository>();
-*/
-
-// ▶ Bloque C — SQLite
-/*
 builder.Services.AddDbContext<SqliteDbContext>(options =>
     options.UseSqlite(sqlitePath));
-builder.Services.AddScoped<IUsuarioRepository, SqliteUsuarioRepository>();
-builder.Services.AddScoped<IPrendaRepository, SqlitePrendaRepository>();
-builder.Services.AddScoped<IOutfitRepository, SqliteOutfitRepository>();
-builder.Services.AddScoped<IDonacionRepository, SqliteDonacionRepository>();
-*/
+
+builder.Services.AddSingleton<IPrendaRepository>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<LoggingPrendaRepository>>();
+    var realRepo = RepositoryFactory.CreatePrendaRepository(env, sp);
+    return new LoggingPrendaRepository(realRepo, logger);
+});
+
+builder.Services.AddSingleton<IUsuarioRepository>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<LoggingUsuarioRepository>>();
+    var realRepo = RepositoryFactory.CreateUsuarioRepository(env, sp);
+    return new LoggingUsuarioRepository(realRepo, logger);
+});
+
+builder.Services.AddSingleton<IOutfitRepository>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<LoggingOutfitRepository>>();
+    var realRepo = RepositoryFactory.CreateOutfitRepository(env, sp);
+    return new LoggingOutfitRepository(realRepo, logger);
+});
+
+builder.Services.AddSingleton<IDonacionRepository>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<LoggingDonacionRepository>>();
+    var realRepo = RepositoryFactory.CreateDonacionRepository(env, sp);
+    return new LoggingDonacionRepository(realRepo, logger);
+});
 
 
 // ── 3. Autenticación ──────────────────────────────────────────────────────────
@@ -72,11 +84,42 @@ builder.Services.AddScoped<IPerfilConocimientoService, PerfilConocimientoService
 // ── 6. Use Cases ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISeedService, SeedService>();
-builder.Services.AddScoped<IPrendaService, PrendaService>();
-builder.Services.AddScoped<IOutfitService, OutfitService>();
 builder.Services.AddScoped<IPerfilService, PerfilService>();
-builder.Services.AddScoped<IDonacionService, DonacionService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<IPrendaService>(sp =>
+{
+    var prendaRepo = sp.GetRequiredService<IPrendaRepository>();
+    var fotos = sp.GetRequiredService<IAlmacenamientoImagenes>();
+    var service = new PrendaService(prendaRepo, fotos);
+    var logger = sp.GetRequiredService<ILogger<ConsoleNotifier<PrendaCreadaEvent>>>();
+    service.SubscribePrendaCreada(new ConsoleNotifier<PrendaCreadaEvent>(logger));
+    return service;
+});
+
+builder.Services.AddScoped<IOutfitService>(sp =>
+{
+    var outfits = sp.GetRequiredService<IOutfitRepository>();
+    var prendas = sp.GetRequiredService<IPrendaRepository>();
+    var colorimetria = sp.GetRequiredService<IColorimetriaService>();
+    var usuarios = sp.GetRequiredService<IUsuarioRepository>();
+    var perfil = sp.GetRequiredService<IPerfilService>();
+    var conocimiento = sp.GetRequiredService<IPerfilConocimientoService>();
+    var service = new OutfitService(outfits, prendas, colorimetria, usuarios, perfil, conocimiento);
+    var logger = sp.GetRequiredService<ILogger<ConsoleNotifier<OutfitGeneradoEvent>>>();
+    service.SubscribeOutfitGenerado(new ConsoleNotifier<OutfitGeneradoEvent>(logger));
+    return service;
+});
+
+builder.Services.AddScoped<IDonacionService>(sp =>
+{
+    var donaciones = sp.GetRequiredService<IDonacionRepository>();
+    var prendas = sp.GetRequiredService<IPrendaService>();
+    var service = new DonacionService(donaciones, prendas);
+    var logger = sp.GetRequiredService<ILogger<ConsoleNotifier<DonacionRegistradaEvent>>>();
+    service.SubscribeDonacionRegistrada(new ConsoleNotifier<DonacionRegistradaEvent>(logger));
+    return service;
+});
 
 builder.Services.AddControllersWithViews();
 
