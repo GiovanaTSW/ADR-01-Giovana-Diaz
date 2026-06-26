@@ -1,0 +1,185 @@
+@baseUrl = http://localhost:5111
+@userId = 1
+@prendaId = 1
+@outfitId = 1
+@loteId = 1
+@puntoONGId = 1
+
+### ==========================================
+###               AUTH
+### ==========================================
+
+### Registrar un nuevo usuario
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Usuario Test",
+  "email": "test@example.com",
+  "password": "123456"
+}
+
+### Login (inicia sesión y guarda los datos del usuario)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "123456"
+}
+
+### ==========================================
+###               PRENDA
+### ==========================================
+
+### Obtener todas las prendas de un usuario
+GET {{baseUrl}}/api/prenda/usuario/{{userId}}
+
+### Obtener una prenda por ID
+GET {{baseUrl}}/api/prenda/{{prendaId}}
+
+### Obtener prendas disponibles de un usuario
+GET {{baseUrl}}/api/prenda/usuario/{{userId}}/disponibles
+
+### Obtener prendas listas para donar de un usuario
+GET {{baseUrl}}/api/prenda/usuario/{{userId}}/para-donar
+
+### Crear una nueva prenda
+POST {{baseUrl}}/api/prenda
+Content-Type: application/json
+
+{
+  "nombre": "Camisa azul",
+  "categoria": "Camisa",
+  "color": "Azul",
+  "talla": "M",
+  "estacion": "Primavera",
+  "usuarioId": {{userId}}
+}
+
+### Alternar estado de uso de una prenda
+PUT {{baseUrl}}/api/prenda/{{prendaId}}/toggle-uso
+
+### Marcar múltiples prendas como en desuso
+PUT {{baseUrl}}/api/prenda/marcar-desuso
+Content-Type: application/json
+
+{
+  "prendaIds": [1, 2]
+}
+
+### Desmarcar una prenda como en desuso
+PUT {{baseUrl}}/api/prenda/{{prendaId}}/desmarcar-desuso
+
+### Eliminar una prenda
+DELETE {{baseUrl}}/api/prenda/{{prendaId}}
+
+### ==========================================
+###               OUTFIT
+### ==========================================
+
+### Obtener todos los outfits de un usuario
+GET {{baseUrl}}/api/outfit/usuario/{{userId}}
+
+### Obtener un outfit por ID
+GET {{baseUrl}}/api/outfit/{{outfitId}}
+
+### Obtener las prendas de un outfit
+GET {{baseUrl}}/api/outfit/{{outfitId}}/prendas
+
+### Generar sugerencia de outfit
+POST {{baseUrl}}/api/outfit/sugerencia
+Content-Type: application/json
+
+{
+  "usuarioId": {{userId}},
+  "ocasion": "Casual"
+}
+
+### Guardar un nuevo outfit
+POST {{baseUrl}}/api/outfit
+Content-Type: application/json
+
+{
+  "usuarioId": {{userId}},
+  "nombre": "Outfit de prueba",
+  "ocasion": "Casual",
+  "prendaIds": [1, 2]
+}
+
+### Eliminar un outfit
+DELETE {{baseUrl}}/api/outfit/{{outfitId}}
+
+### ==========================================
+###              DONACION
+### ==========================================
+
+### Obtener todos los lotes de donación de un usuario
+GET {{baseUrl}}/api/donacion/usuario/{{userId}}
+
+### Obtener un lote de donación por ID
+GET {{baseUrl}}/api/donacion/{{loteId}}
+
+### Obtener todos los puntos ONG
+GET {{baseUrl}}/api/donacion/puntos-ong
+
+### Agregar un nuevo punto ONG
+POST {{baseUrl}}/api/donacion/puntos-ong
+Content-Type: application/json
+
+{
+  "nombre": "Centro de Acopio Centro",
+  "direccion": "Av. Principal 123",
+  "telefono": "555-0100",
+  "latitud": 19.4326,
+  "longitud": -99.1332
+}
+
+### Registrar una donación
+POST {{baseUrl}}/api/donacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{userId}},
+  "prendaIds": [1, 2],
+  "puntoONGId": {{puntoONGId}}
+}
+
+### Quitar una prenda de un lote de donación
+PUT {{baseUrl}}/api/donacion/{{loteId}}/quitar-prenda/{{prendaId}}
+
+### Cancelar un lote de donación
+PUT {{baseUrl}}/api/donacion/{{loteId}}/cancelar
+
+### Marcar un lote como entregado
+PUT {{baseUrl}}/api/donacion/{{loteId}}/entregar
+
+### ==========================================
+###               USUARIO
+### ==========================================
+
+### Obtener un usuario por ID
+GET {{baseUrl}}/api/usuario/{{userId}}
+
+### ==========================================
+###               PERFIL
+### ==========================================
+
+### Obtener perfil físico de un usuario
+GET {{baseUrl}}/api/perfil/{{userId}}
+
+### Guardar perfil físico de un usuario
+POST {{baseUrl}}/api/perfil/{{userId}}
+Content-Type: application/json
+
+{
+  "tipoCuerpo": "Reloj de arena",
+  "tonoPiel": "Claro",
+  "subtonoPiel": "Frío",
+  "intensidadCabello": "Oscuro",
+  "colorOjos": "Café",
+  "colorimetria": "Invierno",
+  "contraste": "Alto",
+  "altura": 1.65,
+  "fotoUrl": null
+}

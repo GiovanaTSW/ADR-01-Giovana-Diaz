@@ -15,6 +15,7 @@ using Dressly.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 
 // ── 1. Carpeta de datos ───────────────────────────────────────────────────────
 var dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "data");

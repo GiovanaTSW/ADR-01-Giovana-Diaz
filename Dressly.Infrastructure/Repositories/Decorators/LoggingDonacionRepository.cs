@@ -17,60 +17,60 @@ public class LoggingDonacionRepository : IDonacionRepository
 
     public async Task<List<LoteDonacion>> GetLotesByUsuarioIdAsync(int usuarioId)
     {
-        _logger.LogInformation("▶ DonacionRepository.GetLotesByUsuarioIdAsync({UsuarioId})", usuarioId);
+        _logger.LogInformation("DonacionRepository.GetLotesByUsuarioIdAsync({UsuarioId}) - inicio", usuarioId);
         var result = await _inner.GetLotesByUsuarioIdAsync(usuarioId);
-        _logger.LogInformation("◀ DonacionRepository.GetLotesByUsuarioIdAsync({UsuarioId}) → {Count} lotes", usuarioId, result.Count);
+        _logger.LogInformation("DonacionRepository.GetLotesByUsuarioIdAsync({UsuarioId}) - {Count} lotes", usuarioId, result.Count);
         return result;
     }
 
     public async Task<LoteDonacion?> GetLoteByIdAsync(int id)
     {
-        _logger.LogInformation("▶ DonacionRepository.GetLoteByIdAsync({Id})", id);
+        _logger.LogInformation("DonacionRepository.GetLoteByIdAsync({Id}) - inicio", id);
         var result = await _inner.GetLoteByIdAsync(id);
-        _logger.LogInformation("◀ DonacionRepository.GetLoteByIdAsync({Id}) → {Found}", id, result != null ? "encontrado" : "null");
+        _logger.LogInformation("DonacionRepository.GetLoteByIdAsync({Id}) - {Status}", id, result != null ? "encontrado" : "null");
         return result;
     }
 
     public async Task<List<PuntoONG>> GetPuntosONGAsync()
     {
-        _logger.LogInformation("▶ DonacionRepository.GetPuntosONGAsync()");
+        _logger.LogInformation("DonacionRepository.GetPuntosONGAsync - inicio");
         var result = await _inner.GetPuntosONGAsync();
-        _logger.LogInformation("◀ DonacionRepository.GetPuntosONGAsync() → {Count} puntos", result.Count);
+        _logger.LogInformation("DonacionRepository.GetPuntosONGAsync - {Count} puntos", result.Count);
         return result;
     }
 
     public async Task AddPuntoONGAsync(PuntoONG punto)
     {
-        _logger.LogInformation("▶ DonacionRepository.AddPuntoONGAsync({Nombre})", punto.Nombre);
+        _logger.LogInformation("DonacionRepository.AddPuntoONGAsync({Nombre}) - inicio", punto.Nombre);
         await _inner.AddPuntoONGAsync(punto);
-        _logger.LogInformation("◀ DonacionRepository.AddPuntoONGAsync({Nombre}) → OK", punto.Nombre);
+        _logger.LogInformation("DonacionRepository.AddPuntoONGAsync({Nombre}) - guardado", punto.Nombre);
     }
 
     public async Task AddLoteAsync(LoteDonacion lote)
     {
-        _logger.LogInformation("▶ DonacionRepository.AddLoteAsync({Id})", lote.Id);
+        _logger.LogInformation("DonacionRepository.AddLoteAsync({Id}) - inicio", lote.Id);
         await _inner.AddLoteAsync(lote);
-        _logger.LogInformation("◀ DonacionRepository.AddLoteAsync({Id}) → OK", lote.Id);
+        _logger.LogInformation("DonacionRepository.AddLoteAsync({Id}) - guardado", lote.Id);
     }
 
     public async Task UpdateLoteAsync(LoteDonacion lote)
     {
-        _logger.LogInformation("▶ DonacionRepository.UpdateLoteAsync({Id})", lote.Id);
+        _logger.LogInformation("DonacionRepository.UpdateLoteAsync({Id}) - inicio", lote.Id);
         await _inner.UpdateLoteAsync(lote);
-        _logger.LogInformation("◀ DonacionRepository.UpdateLoteAsync({Id}) → OK", lote.Id);
+        _logger.LogInformation("DonacionRepository.UpdateLoteAsync({Id}) - actualizado", lote.Id);
     }
 
     public async Task DeleteLoteAsync(int id)
     {
-        _logger.LogInformation("▶ DonacionRepository.DeleteLoteAsync({Id})", id);
+        _logger.LogInformation("DonacionRepository.DeleteLoteAsync({Id}) - inicio", id);
         await _inner.DeleteLoteAsync(id);
-        _logger.LogInformation("◀ DonacionRepository.DeleteLoteAsync({Id}) → OK", id);
+        _logger.LogInformation("DonacionRepository.DeleteLoteAsync({Id}) - eliminado", id);
     }
 
     public async Task RemovePrendaFromLoteAsync(int loteId, int prendaId)
     {
-        _logger.LogInformation("▶ DonacionRepository.RemovePrendaFromLoteAsync({LoteId}, {PrendaId})", loteId, prendaId);
+        _logger.LogInformation("DonacionRepository.RemovePrendaFromLoteAsync({LoteId}, {PrendaId}) - inicio", loteId, prendaId);
         await _inner.RemovePrendaFromLoteAsync(loteId, prendaId);
-        _logger.LogInformation("◀ DonacionRepository.RemovePrendaFromLoteAsync({LoteId}, {PrendaId}) → OK", loteId, prendaId);
+        _logger.LogInformation("DonacionRepository.RemovePrendaFromLoteAsync({LoteId}, {PrendaId}) - eliminado", loteId, prendaId);
     }
 }

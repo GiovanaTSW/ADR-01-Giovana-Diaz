@@ -14,7 +14,7 @@ public class ConsoleNotifier<TEvent> : IEventObserver<TEvent>
 
     public Task HandleAsync(TEvent evento)
     {
-        _logger.LogInformation("📢 [NOTIFICACION] {Evento}", evento);
+        _logger.LogInformation("[NOTIFICACION] {Evento}", evento);
         return Task.CompletedTask;
     }
 }
