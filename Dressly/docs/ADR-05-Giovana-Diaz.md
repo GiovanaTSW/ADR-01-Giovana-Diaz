@@ -14,26 +14,24 @@
 ---
 
 ## Contexto
+ 
+Con la arquitectura hexagonal establecida en ADR-03, el proyecto Dressly ya cuenta con puertos, adaptadores e inyección de dependencias funcionando. Sin embargo, tres problemas concretos quedaron sin una solución estructurada:
+ 
+- **Creación de repositorios según el entorno:** `Program.cs` necesita decidir en tiempo de ejecución qué implementación concreta instanciar (JSON en Development, SQLite en Production) sin que Application ni Domain lo sepan.
+- **Notificaciones al crear prendas y outfits:** cuando el usuario registra una prenda o guarda un outfit, otros componentes del sistema deben enterarse del evento sin que `PrendaService` ni `OutfitService` dependan directamente de ellos.
+- **Logging transversal en repositorios:** cada operación de repositorio debe registrarse (qué método se llamó, con qué parámetros y qué resultado devolvió) sin modificar las implementaciones concretas de JSON, CSV ni SQLite.
 
-El siguiente paso para este proyecto es enriquecer la infraestructura del sistema con patrones de diseño GOF (Gang of Four) que resuelvan problemas concretos de Dressly sin romper la separación entre dominio, aplicación e infraestructura.
-
-Los tres problemas identificados fueron:
-
-- **Creación de repositorios:** en `Program.cs` se necesita decidir en tiempo de ejecución qué implementación concreta (JSON o SQLite) instanciar según el entorno, sin que Application ni Domain lo sepan.
-- **Notificaciones al crear prendas y outfits:** cuando el usuario crea una prenda o guarda un outfit, otros componentes del sistema (notificadores, loggers, futuros servicios) deben enterarse sin que `PrendaService` ni `OutfitService` dependan directamente de ellos.
-- **Logging transversal en repositorios:** cada operación de repositorio debe registrarse (entrada y salida) sin modificar las implementaciones concretas de JSON, CSV ni SQLite.
+Las restricciones siguen siendo las mismas que en ADRs anteriores: tiempo académico limitado, stack .NET 10 ya establecido y la condición de no romper la separación de capas lograda.
 
 ---
 
 ## Decisión
-
-Se integran tres patrones GOF, cada uno resolviendo uno de los problemas identificados:
-
-### 1. Factory Method — `RepositoryFactory`
-
-**Problema:** `Program.cs` necesita instanciar el repositorio correcto según el entorno (`Development` → JSON, `Production` → SQLite) sin que Application conozca las implementaciones concretas.
-
-**Solución:** Una clase estática `RepositoryFactory` en `Dressly.Infrastructure` expone métodos de creación por entidad. Recibe el nombre del entorno y un `IServiceProvider`, y devuelve la implementación adecuada a través del puerto de salida.
+ 
+Se integran tres patrones de diseño GOF, cada uno resolviendo uno de los problemas identificados: **Factory Method**, **Observer** y **Decorator**.
+ 
+### ¿Por qué?
+ 
+**Factory Method (`RepositoryFactory`):** centraliza en un solo lugar la lógica de qué repositorio instanciar según el entorno. Recibe el nombre del entorno y un `IServiceProvider`, y devuelve la implementación adecuada a través del puerto de salida — sin que Application conozca las clases concretas. Agregar un nuevo adaptador (por ejemplo, PostgreSQL) solo requiere añadir un caso en el factory sin tocar ningún otro archivo.
 
 ```csharp
 // Dressly.Infrastructure/Repositories/RepositoryFactory.cs
@@ -44,7 +42,7 @@ public static IPrendaRepository CreatePrendaRepository(string environment, IServ
         var db = sp.GetRequiredService<SqliteDbContext>();
         return new SqlitePrendaRepository(db);
     }
-    return new PrendaRepository(); // JSON
+    return new PrendaRepository(); // JSON por defecto
 }
 ```
 
@@ -52,44 +50,25 @@ public static IPrendaRepository CreatePrendaRepository(string environment, IServ
 
 ---
 
-### 2. Observer — `IEventObserver<TEvent>` + `ConsoleNotifier`
-
-**Problema:** `PrendaService` y `OutfitService` deben notificar eventos del dominio (`PrendaCreadaEvent`, `OutfitGeneradoEvent`, `DonacionRegistradaEvent`) sin acoplarse a los componentes que los consumen.
-
-**Solución:** Se define el puerto de salida `IEventObserver<TEvent>` en `Dressly.Web` (Application). Los servicios mantienen una lista de observers suscritos y los notifican al final de la operación. `ConsoleNotifier<TEvent>` en `Dressly.Infrastructure` es el adaptador concreto que implementa ese puerto.
-
+**Observer (`IEventObserver<TEvent>` + `ConsoleNotifier`):** se define el puerto de salida `IEventObserver<TEvent>` en Application. Los servicios mantienen una lista de observers suscritos y los notifican al final de la operación. `ConsoleNotifier<TEvent>` en Infrastructure es el adaptador concreto. Agregar un nuevo observer (email, webhook) solo requiere implementar `IEventObserver<T>` y suscribirlo, sin modificar `PrendaService` ni `OutfitService`.
+ 
 ```csharp
-// Dressly.Web/Ports/Output/IEventObserver.cs
-public interface IEventObserver<in TEvent>
-{
-    Task HandleAsync(TEvent evento);
-}
-
-// Dressly.Web/UseCases/PrendaService.cs
+// Publicación del evento en PrendaService.CrearAsync()
 var evento = new PrendaCreadaEvent(prenda.UsuarioId, prenda.Id, prenda.Nombre, DateTime.Now);
 foreach (var obs in _prendaCreadaObservers)
     await obs.HandleAsync(evento);
-```
-
-```csharp
-// Dressly.Infrastructure/Notifications/ConsoleNotifier.cs
+ 
+// ConsoleNotifier en Infrastructure
 public Task HandleAsync(TEvent evento)
 {
     _logger.LogInformation("[NOTIFICACION] {Evento}", evento);
     return Task.CompletedTask;
 }
 ```
-
-**Resultado:** Cuando el usuario crea una prenda o guarda un outfit, `ConsoleNotifier` recibe el evento y lo registra en consola. Agregar un nuevo observer (email real, webhook, etc.) solo requiere implementar `IEventObserver<T>` y suscribirlo, sin modificar los servicios.
-
 ---
 
-### 3. Decorator — `LoggingPrendaRepository` y familia
-
-**Problema:** Se necesita registrar cada operación de repositorio (método invocado, parámetros, resultado) sin modificar las implementaciones concretas de JSON, CSV ni SQLite.
-
-**Solución:** Cuatro clases Decorator en `Dressly.Infrastructure/Repositories/Decorators/` envuelven cada repositorio concreto. Implementan el mismo puerto de salida, delegan la operación al repositorio interno (`_inner`) y registran la entrada y salida con timestamp.
-
+**Decorator (`LoggingPrendaRepository` y familia):** cuatro clases Decorator en `Dressly.Infrastructure/Repositories/Decorators/` envuelven cada repositorio concreto. Implementan el mismo puerto de salida, delegan la operación al repositorio interno (`_inner`) y registran entrada y salida con timestamp. El repositorio concreto no sabe que está siendo decorado.
+ 
 ```csharp
 // Dressly.Infrastructure/Repositories/Decorators/LoggingPrendaRepository.cs
 public async Task<List<Prenda>> GetByUsuarioIdAsync(int usuarioId)
@@ -100,8 +79,6 @@ public async Task<List<Prenda>> GetByUsuarioIdAsync(int usuarioId)
     return result;
 }
 ```
-
-**Resultado:** Cada llamada a repositorio queda registrada en consola con timestamp, nombre del método, parámetros y resultado, sin que `PrendaRepository`, `SqlitePrendaRepository` ni ningún otro adaptador sepa que está siendo decorado.
 
 ---
 
@@ -145,24 +122,30 @@ flowchart TD
 
 ---
 
-## Evidencia de funcionamiento
+### Alternativas consideradas
+ 
+| Alternativa | Por qué la descarté |
+|-------------|---------------------|
+| **Logging con AOP (Castle DynamicProxy / PostSharp)** | Requiere dependencias externas adicionales que añaden complejidad de configuración innecesaria para el alcance académico del proyecto; el Decorator manual resuelve el mismo problema con código propio. |
+| **MediatR para eventos (en lugar de Observer manual)** | Añade una dependencia extra y una capa de abstracción que no se justifica cuando el Observer implementado directamente con `IEventObserver<T>` ya respeta los puertos hexagonales que tenemos. |
+| **Abstract Factory en lugar de Factory Method** | Considerado para agrupar las cuatro familias de repositorios (Prenda, Usuario, Outfit, Donación), pero el número de variantes no justifica la complejidad adicional de definir interfaces de factory por familia; Factory Method estático es suficiente y más legible. |
+| **Service Locator para creación de repositorios** | Resuelve el problema de instanciación pero oculta las dependencias, dificultando entender qué implementación está activa; Factory Method hace la decisión explícita y trazable. |
+ 
+---
 
-La siguiente captura muestra la consola de `Dressly.Api` durante la ejecución de un `POST /api/prenda` y un `POST /api/outfit`, donde se pueden observar los tres patrones actuando simultáneamente:
+## Consecuencias
+ 
+**✅ Lo que gano:**
+ 
+- **Técnica:** los tres patrones operan sin modificar el dominio ni la capa de aplicación. Cambiar de JSON a SQLite, añadir un nuevo observer o desactivar el logging solo requiere tocar `Program.cs` o añadir una clase en Infrastructure — el núcleo de Dressly permanece intacto.
+- **Proceso:** cada patrón tiene una responsabilidad clara y aislada, lo que hace que el código sea más fácil de explicar, revisar y extender en futuras entregas del proyecto.
 
-- **Decorator:** líneas `PrendaRepository.AddAsync(Vestido rosa) - inicio / guardado`, `GetAllAsync - 2 items`, `SaveAsync`, `OutfitRepository.AddAsync(Look casual) - inicio / guardado`
-- **Observer:** líneas `[NOTIFICACION] PrendaCreadaEvent { ... }` y `[NOTIFICACION] OutfitGeneradoEvent { ... }`
-- **Factory:** activo desde el arranque — el entorno `Development` resolvió `PrendaRepository` (JSON) como se observa en el content root path `Dressly.Api`
+**⚠️ Lo que sacrifico o asumo:**
+- **Limitación técnica:** el Observer está suscrito manualmente en `Program.cs`, por lo que si se añaden muchos observers en el futuro, la configuración puede volverse verbosa y difícil de mantener sin un sistema de registro más sofisticado.
+- **Deuda o riesgo:** el `RepositoryFactory` usa `string environment` como condición, lo que significa que un error tipográfico en el nombre del entorno podría silenciosamente activar el adaptador equivocado; en producción real convendría validar ese valor o usar un enum.
 
-> **Nota:** La imagen de evidencia corresponde a la captura de pantalla tomada durante la sesión de pruebas del 26/06/2026.
 
 ---
 
-## ¿Por qué estos tres patrones?
-
-1. **Factory Method** resuelve el problema de creación condicional de repositorios que ya existía en `Program.cs` de forma dispersa. Centraliza esa lógica en un solo lugar y hace explícita la decisión de qué adaptador usar según el entorno, lo cual es coherente con la arquitectura hexagonal: la infraestructura decide, el dominio no sabe.
-
-2. **Observer** permite que los servicios de aplicación (`PrendaService`, `OutfitService`, `DonacionService`) publiquen eventos del dominio sin conocer a sus consumidores. Esto respeta el principio de inversión de dependencias: los observers dependen del evento, no al revés. En el futuro se pueden añadir observers sin tocar los servicios.
-
-3. **Decorator** añade comportamiento transversal (logging) a los repositorios sin violar el principio de responsabilidad única. Cada repositorio concreto sigue haciendo solo persistencia; el decorator solo hace logging. Ambos implementan el mismo puerto de salida, por lo que son intercambiables desde `Program.cs`.
-
----
+## Cláusula de IA
+En este documento se ha utilizado Deepseek y Claude para la corrección de errores, refactorización de otras ramas integradas al proyecto y sugerencias para la redacción de este ADR. Todas las ideas y decisiones de diseño son propias de la autora y no fueron generadas la IA.
