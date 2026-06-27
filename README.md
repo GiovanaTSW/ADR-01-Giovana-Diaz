@@ -1,84 +1,151 @@
-# ADR-01-Giovana-Diaz
+<div align = "center">
+    <h1>ADR-05-Giovana-Diaz</h1>
+    <h1>ADR-05: Integración de Patrones de Diseño GOF en Dressly</h1>
+</div>
 
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
+---
 
 | Campo  | Valor |
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
-| Fecha  | 15/05/2026 |
+| Fecha  | 26/06/2026 |
 | Estado | `Propuesto` |
 
 ---
 
 ## Contexto
+ 
+Con la arquitectura hexagonal establecida en ADR-03, el proyecto Dressly ya cuenta con puertos, adaptadores e inyección de dependencias funcionando. Sin embargo, tres problemas concretos quedaron sin una solución estructurada:
+ 
+- **Creación de repositorios según el entorno:** `Program.cs` necesita decidir en tiempo de ejecución qué implementación concreta instanciar (JSON en Development, SQLite en Production) sin que Application ni Domain lo sepan.
+- **Notificaciones al crear prendas y outfits:** cuando el usuario registra una prenda o guarda un outfit, otros componentes del sistema deben enterarse del evento sin que `PrendaService` ni `OutfitService` dependan directamente de ellos.
+- **Logging transversal en repositorios:** cada operación de repositorio debe registrarse (qué método se llamó, con qué parámetros y qué resultado devolvió) sin modificar las implementaciones concretas de JSON, CSV ni SQLite.
 
-Actualmente, muchas personas se responden una pregunta que se realizan todos los días: ¿Qué outfit me pondré hoy?, esto puede llegar a ser cansado para algunos, pues a pesar de contar con ropa suficiente dentro de su armario, ocurre ese sentimiento de no saber qué ponerse debido a que no recuerdan las prendas que tienen y no saben cómo combinarlas, sumándole el hecho de que muchos usuarios realizan compras innecesarias desconociendo datos acerca de su propio tipo de cuerpo y colorimetría, como al no saber qué tipos de cortes y tonos les favorecen, adquiriendo prendas que terminan sin un solo uso; esto formando parte del consumo desmedido e innecesario de ropa, y acumulación de desperdicio textil que pierde la oportunidad de ser aprovechado por otros. 
-
-El proyecto busca resolver la pérdida de tiempo y el agobio que sentimos al elegir un outfit, dándonos sugerencias rápidas que ya no sea un proceso cansado; por otro lado, también ayuda en poner orden en el descontrol de prendas del armario, evitando que compremos ropa casi igual a la que ya tenemos solo porque no recordamos que está ahí, de igual manera, resuelve el problema de comprar por impulsividad prendas que no nos favorecen, ayudando a elegir prendas que realmente favorezcan nuestras características físicas. Finalmente, el proyecto ayuda a resolver un problema que persiste actualmente que es el hiperconsumismo de textiles, contribuyendo a la economía circular y facilitando a donarla a quiénes la necesiten y dándole un propósito mejor a lo que ya nos ponemos.
-
-El proyecto va dirigido a personas que buscan una nueva forma de gestionar su guardarropa y buscan tener recomendaciones basadas en sus características físicas, así como personas comprometidas con la economía circular que requieren una vía eficiente para canalizar sus prendas en desuso.
-
+Las restricciones siguen siendo las mismas que en ADRs anteriores: tiempo académico limitado, stack .NET 10 ya establecido y la condición de no romper la separación de capas lograda.
 
 ---
-
-## Restricciones 
-
-Las restricciones de este proyecto académico, principalmente se cuenta con un tiempo limitado para la entrega y avances para el desarrollo del sistema; de igual manera, el enfoque del proyecto, Dressly, debe centrarse principalmente para la verificar de forma eficiente del flujo de los datos como:
-
-- El estilo del usuario
-- Gestión del inventario
-- Inteligencia para la vestimenta
-- El apartado para el módulo de economía circular
-
-Implementando estos elementos sin añadir mayores complejidades de red mucho más avanzadas para el principio del proyecto.
 
 ## Decisión
+ 
+Se integran tres patrones de diseño GOF, cada uno resolviendo uno de los problemas identificados: **Factory Method**, **Observer** y **Decorator**.
+ 
+### ¿Por qué?
+ 
+**Factory Method (`RepositoryFactory`):** centraliza en un solo lugar la lógica de qué repositorio instanciar según el entorno. Recibe el nombre del entorno y un `IServiceProvider`, y devuelve la implementación adecuada a través del puerto de salida — sin que Application conozca las clases concretas. Agregar un nuevo adaptador (por ejemplo, PostgreSQL) solo requiere añadir un caso en el factory sin tocar ningún otro archivo.
 
-Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura en capas para el desarrollo del proyecto.Con ello, podemos destacar que el estilo se caracteriza por organizar el sistema en capas jerárquicas, en el que cada una tiene una responsabilidad específica y se comunica con las otras capas por medio de interfaces.
+```csharp
+// Dressly.Infrastructure/Repositories/RepositoryFactory.cs
+public static IPrendaRepository CreatePrendaRepository(string environment, IServiceProvider sp)
+{
+    if (environment == "Production")
+    {
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqlitePrendaRepository(db);
+    }
+    return new PrendaRepository(); // JSON por defecto
+}
+```
 
-### ¿Por qué he optado por esta decisión?
-
-Se eligió esta arquitectura porque permite estructurar de forma clara y ordenada toda la lógica y los datos específicos que maneja el proyecto:
-
-* **Organización de los Datos:** Permite separar limpiamente los datos del Core de usuario y biometría (Usuario, Perfil físico, Regla de estilo), la Gestión de inventario (Prenda, Categoría, Temporada), la Inteligencia de vestimenta (Outfit, Ocasión) y el Módulo de economía circular (Lote de Donación, Punto de Donación) en una base de datos centralizada, facilitando que se relacionen entre sí sin problemas de sincronización.
-
-* **Procesamiento de Reglas:** La capa de negocio centralizará la lógica del sistema, permitiendo cruzar de forma eficiente la matriz lógica de "Regla de estilo" con el "Perfil físico" del usuario para generar las sugerencias rápidas de outfits.
-
-* **Límites de tiempo:** Desarrollar en capas dentro de un mismo proyecto reduce los tiempos de configuración inicial, permitiéndonos cumplir con los plazos escolares establecidos.
+**Resultado:** `Program.cs` solo llama a `RepositoryFactory.CreatePrendaRepository(env, sp)` y obtiene la instancia correcta. Agregar un nuevo adaptador (por ejemplo, PostgreSQL) solo requiere añadir un caso en el factory, sin tocar ningún otro archivo.
 
 ---
 
-### Alternativas consideradas y la razón del por qué las descarté para el proyecto
+**Observer (`IEventObserver<TEvent>` + `ConsoleNotifier`):** se define el puerto de salida `IEventObserver<TEvent>` en Application. Los servicios mantienen una lista de observers suscritos y los notifican al final de la operación. `ConsoleNotifier<TEvent>` en Infrastructure es el adaptador concreto. Agregar un nuevo observer (email, webhook) solo requiere implementar `IEventObserver<T>` y suscribirlo, sin modificar `PrendaService` ni `OutfitService`.
+ 
+```csharp
+// Publicación del evento en PrendaService.CrearAsync()
+var evento = new PrendaCreadaEvent(prenda.UsuarioId, prenda.Id, prenda.Nombre, DateTime.Now);
+foreach (var obs in _prendaCreadaObservers)
+    await obs.HandleAsync(evento);
+ 
+// ConsoleNotifier en Infrastructure
+public Task HandleAsync(TEvent evento)
+{
+    _logger.LogInformation("[NOTIFICACION] {Evento}", evento);
+    return Task.CompletedTask;
+}
+```
+---
 
-- **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
+**Decorator (`LoggingPrendaRepository` y familia):** cuatro clases Decorator en `Dressly.Infrastructure/Repositories/Decorators/` envuelven cada repositorio concreto. Implementan el mismo puerto de salida, delegan la operación al repositorio interno (`_inner`) y registran entrada y salida con timestamp. El repositorio concreto no sabe que está siendo decorado.
+ 
+```csharp
+// Dressly.Infrastructure/Repositories/Decorators/LoggingPrendaRepository.cs
+public async Task<List<Prenda>> GetByUsuarioIdAsync(int usuarioId)
+{
+    Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] PrendaRepository.GetByUsuarioIdAsync({usuarioId}) - inicio");
+    var result = await _inner.GetByUsuarioIdAsync(usuarioId);
+    Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] PrendaRepository.GetByUsuarioIdAsync({usuarioId}) - {result.Count} items");
+    return result;
+}
+```
 
-- **Arquitectura Basada en Eventos**: Se analizó para enviar notificaciones basadas en el "contador de usos" o la "fecha de última vez que se usó" una prenda, pero se descartó porque requiere implementar herramientas de mensajería (como brokers de eventos) que desviarán el enfoque principal en esta fase de boceto.
+---
 
-- **Arquitectura de Tres Capas Simple (Sin lógica intermedia)**: Consiste en conectar la interfaz de usuario directo a la persistencia. Se descartó porque revolvería las reglas de combinación de ropa y colorimetría dentro de las pantallas, haciendo que el sistema sea desordenado y muy difícil de mantener si se añaden nuevas categorías de prendas.
+### Diagrama general — los tres patrones en Dressly
 
+```mermaid
+flowchart TD
+    subgraph Program["Program.cs (Dressly.Api)"]
+        PG["Configuración DI\nRepositoryFactory.CreatePrendaRepository(env, sp)"]
+    end
+
+    subgraph Factory["FACTORY — Dressly.Infrastructure"]
+        RF["RepositoryFactory\n(static)"]
+        PR["PrendaRepository\n(JSON)"]
+        SPR["SqlitePrendaRepository\n(SQLite)"]
+        RF -->|"Development"| PR
+        RF -->|"Production"| SPR
+    end
+
+    subgraph Decorator["DECORATOR — Dressly.Infrastructure"]
+        LPR["LoggingPrendaRepository\n_inner: IPrendaRepository"]
+        PR2["PrendaRepository\n(implementación real)"]
+        LPR -->|"delega"| PR2
+        LPR -->|"registra inicio/fin"| LOG["Console\n[timestamp] método - inicio/resultado"]
+    end
+
+    subgraph Observer["OBSERVER — Dressly.Web + Infrastructure"]
+        PS["PrendaService\nCrearAsync()"]
+        EV["PrendaCreadaEvent\n(record de dominio)"]
+        OBS["IEventObserver&lt;PrendaCreadaEvent&gt;\n(puerto de salida)"]
+        CN["ConsoleNotifier\n(adaptador concreto)"]
+        PS -->|"publica"| EV
+        EV -->|"notifica"| OBS
+        OBS -->|"implementado por"| CN
+        CN -->|"registra"| LOG2["[NOTIFICACION] PrendaCreadaEvent { ... }"]
+    end
+
+    PG -->|"crea"| RF
+    RF -->|"envuelto por"| LPR
+```
+
+---
+
+### Alternativas consideradas
+ 
+| Alternativa | Por qué la descarté |
+|-------------|---------------------|
+| **Logging con AOP (Castle DynamicProxy / PostSharp)** | Requiere dependencias externas adicionales que añaden complejidad de configuración innecesaria para el alcance académico del proyecto; el Decorator manual resuelve el mismo problema con código propio. |
+| **MediatR para eventos (en lugar de Observer manual)** | Añade una dependencia extra y una capa de abstracción que no se justifica cuando el Observer implementado directamente con `IEventObserver<T>` ya respeta los puertos hexagonales que tenemos. |
+| **Abstract Factory en lugar de Factory Method** | Considerado para agrupar las cuatro familias de repositorios (Prenda, Usuario, Outfit, Donación), pero el número de variantes no justifica la complejidad adicional de definir interfaces de factory por familia; Factory Method estático es suficiente y más legible. |
+| **Service Locator para creación de repositorios** | Resuelve el problema de instanciación pero oculta las dependencias, dificultando entender qué implementación está activa; Factory Method hace la decisión explícita y trazable. |
+ 
 ---
 
 ## Consecuencias
+ 
+**✅ Lo que gano:**
+ 
+- **Técnica:** los tres patrones operan sin modificar el dominio ni la capa de aplicación. Cambiar de JSON a SQLite, añadir un nuevo observer o desactivar el logging solo requiere tocar `Program.cs` o añadir una clase en Infrastructure — el núcleo de Dressly permanece intacto.
+- **Proceso:** cada patrón tiene una responsabilidad clara y aislada, lo que hace que el código sea más fácil de explicar, revisar y extender en futuras entregas del proyecto.
 
-### Lo que gano
+**⚠️ Lo que sacrifico o asumo:**
+- **Limitación técnica:** el Observer está suscrito manualmente en `Program.cs`, por lo que si se añaden muchos observers en el futuro, la configuración puede volverse verbosa y difícil de mantener sin un sistema de registro más sofisticado.
+- **Deuda o riesgo:** el `RepositoryFactory` usa `string environment` como condición, lo que significa que un error tipográfico en el nombre del entorno podría silenciosamente activar el adaptador equivocado; en producción real convendría validar ese valor o usar un enum.
 
-- El sistema se vuelve mucho más fácil de construir y mantener porque si en un futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
-  
-- El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
 
-### Lo que sacrifico o asumo
-
-- Al ser una arquitectura de monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
-  
-- Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje de programación, tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración en la lógica.
 ---
 
-## Diagrama
-
-<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
-
---- 
-
-## Declaración de uso de IA
-
-Para la elaboración de este ADR se utilizó Claude (Anthropic) como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly son propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
+## Cláusula de IA
+En este documento se ha utilizado Deepseek y Claude para la corrección de errores, refactorización de otras ramas integradas al proyecto y sugerencias para la redacción de este ADR. Todas las ideas y decisiones de diseño son propias de la autora y no fueron generadas la IA.
