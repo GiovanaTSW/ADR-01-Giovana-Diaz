@@ -142,3 +142,18 @@ flowchart TD
     PG -->|"crea"| RF
     RF -->|"envuelto por"| LPR
 ```
+
+---
+
+## Evidencia de funcionamiento
+
+La siguiente captura muestra la consola de `Dressly.Api` durante la ejecución de un `POST /api/prenda` y un `POST /api/outfit`, donde se pueden observar los tres patrones actuando simultáneamente:
+
+- **Decorator:** líneas `PrendaRepository.AddAsync(Vestido rosa) - inicio / guardado`, `GetAllAsync - 2 items`, `SaveAsync`, `OutfitRepository.AddAsync(Look casual) - inicio / guardado`
+- **Observer:** líneas `[NOTIFICACION] PrendaCreadaEvent { ... }` y `[NOTIFICACION] OutfitGeneradoEvent { ... }`
+- **Factory:** activo desde el arranque — el entorno `Development` resolvió `PrendaRepository` (JSON) como se observa en el content root path `Dressly.Api`
+
+> **Nota:** La imagen de evidencia corresponde a la captura de pantalla tomada durante la sesión de pruebas del 26/06/2026.
+
+---
+
