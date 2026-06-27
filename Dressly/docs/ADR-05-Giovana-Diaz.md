@@ -34,3 +34,16 @@ Se integran tres patrones GOF, cada uno resolviendo uno de los problemas identif
 **Problema:** `Program.cs` necesita instanciar el repositorio correcto según el entorno (`Development` → JSON, `Production` → SQLite) sin que Application conozca las implementaciones concretas.
 
 **Solución:** Una clase estática `RepositoryFactory` en `Dressly.Infrastructure` expone métodos de creación por entidad. Recibe el nombre del entorno y un `IServiceProvider`, y devuelve la implementación adecuada a través del puerto de salida.
+
+```csharp
+// Dressly.Infrastructure/Repositories/RepositoryFactory.cs
+public static IPrendaRepository CreatePrendaRepository(string environment, IServiceProvider sp)
+{
+    if (environment == "Production")
+    {
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqlitePrendaRepository(db);
+    }
+    return new PrendaRepository(); // JSON
+}
+```
