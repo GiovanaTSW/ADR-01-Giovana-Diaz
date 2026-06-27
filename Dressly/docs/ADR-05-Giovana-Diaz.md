@@ -157,3 +157,12 @@ La siguiente captura muestra la consola de `Dressly.Api` durante la ejecución d
 
 ---
 
+## ¿Por qué estos tres patrones?
+
+1. **Factory Method** resuelve el problema de creación condicional de repositorios que ya existía en `Program.cs` de forma dispersa. Centraliza esa lógica en un solo lugar y hace explícita la decisión de qué adaptador usar según el entorno, lo cual es coherente con la arquitectura hexagonal: la infraestructura decide, el dominio no sabe.
+
+2. **Observer** permite que los servicios de aplicación (`PrendaService`, `OutfitService`, `DonacionService`) publiquen eventos del dominio sin conocer a sus consumidores. Esto respeta el principio de inversión de dependencias: los observers dependen del evento, no al revés. En el futuro se pueden añadir observers sin tocar los servicios.
+
+3. **Decorator** añade comportamiento transversal (logging) a los repositorios sin violar el principio de responsabilidad única. Cada repositorio concreto sigue haciendo solo persistencia; el decorator solo hace logging. Ambos implementan el mismo puerto de salida, por lo que son intercambiables desde `Program.cs`.
+
+---
