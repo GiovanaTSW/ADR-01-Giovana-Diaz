@@ -157,6 +157,7 @@ public class OutfitService : IOutfitService
 
         var outfit = new Outfit
         {
+            Id = await _outfits.GetNextIdAsync(),
             Nombre = nombre,
             Ocasion = ocasion,
             PrendaIds = prendaIds,

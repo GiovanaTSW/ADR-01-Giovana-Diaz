@@ -78,5 +78,25 @@
       "FotoUrl": "/uploads/fd22c38d-58c6-422a-b6fd-8cd182550e8a_result.jpg"
     },
     "Prendas": []
+  },
+  {
+    "Id": 5,
+    "Nombre": "romina",
+    "Email": "romi@gmail.com",
+    "PasswordHash": "UjqhjsuJLFH72\u002BKMV\u002BEKkkGeCnPokx5Xi5i6/8z5nN0=",
+    "Perfil": {
+      "Id": 5,
+      "TipoCuerpo": "Reloj de arena",
+      "TonoPiel": "claro",
+      "SubtonoPiel": "C\u00E1lido",
+      "IntensidadCabello": "Oscuro",
+      "ColorOjos": "Azul",
+      "Colorimetria": "Oto\u00F1o",
+      "Contraste": "Medio",
+      "Altura": 1.60,
+      "UsuarioId": 5,
+      "FotoUrl": "/uploads/aa30f47f-35a0-4524-b586-3326ec289718_descargar.webp"
+    },
+    "Prendas": []
   }
 ]
