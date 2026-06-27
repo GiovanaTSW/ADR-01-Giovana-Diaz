@@ -104,3 +104,41 @@ public async Task<List<Prenda>> GetByUsuarioIdAsync(int usuarioId)
 **Resultado:** Cada llamada a repositorio queda registrada en consola con timestamp, nombre del método, parámetros y resultado, sin que `PrendaRepository`, `SqlitePrendaRepository` ni ningún otro adaptador sepa que está siendo decorado.
 
 ---
+
+### Diagrama general — los tres patrones en Dressly
+
+```mermaid
+flowchart TD
+    subgraph Program["Program.cs (Dressly.Api)"]
+        PG["Configuración DI\nRepositoryFactory.CreatePrendaRepository(env, sp)"]
+    end
+
+    subgraph Factory["FACTORY — Dressly.Infrastructure"]
+        RF["RepositoryFactory\n(static)"]
+        PR["PrendaRepository\n(JSON)"]
+        SPR["SqlitePrendaRepository\n(SQLite)"]
+        RF -->|"Development"| PR
+        RF -->|"Production"| SPR
+    end
+
+    subgraph Decorator["DECORATOR — Dressly.Infrastructure"]
+        LPR["LoggingPrendaRepository\n_inner: IPrendaRepository"]
+        PR2["PrendaRepository\n(implementación real)"]
+        LPR -->|"delega"| PR2
+        LPR -->|"registra inicio/fin"| LOG["Console\n[timestamp] método - inicio/resultado"]
+    end
+
+    subgraph Observer["OBSERVER — Dressly.Web + Infrastructure"]
+        PS["PrendaService\nCrearAsync()"]
+        EV["PrendaCreadaEvent\n(record de dominio)"]
+        OBS["IEventObserver&lt;PrendaCreadaEvent&gt;\n(puerto de salida)"]
+        CN["ConsoleNotifier\n(adaptador concreto)"]
+        PS -->|"publica"| EV
+        EV -->|"notifica"| OBS
+        OBS -->|"implementado por"| CN
+        CN -->|"registra"| LOG2["[NOTIFICACION] PrendaCreadaEvent { ... }"]
+    end
+
+    PG -->|"crea"| RF
+    RF -->|"envuelto por"| LPR
+```
