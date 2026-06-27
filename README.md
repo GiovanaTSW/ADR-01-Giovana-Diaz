@@ -1,60 +1,77 @@
-# ADR-01-Giovana-Diaz
+# ADR-04-Giovana-Diaz
 
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
+# ADR-04: Incorporación de Dressly.Api como capa de presentación REST API
 
 | Campo  | Valor |
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
-| Fecha  | 15/05/2026 |
+| Fecha  | 26/06/2026 |
 | Estado | `Propuesto` |
 
 ---
 
 ## Contexto
 
-Actualmente, muchas personas se responden una pregunta que se realizan todos los días: ¿Qué outfit me pondré hoy?, esto puede llegar a ser cansado para algunos, pues a pesar de contar con ropa suficiente dentro de su armario, ocurre ese sentimiento de no saber qué ponerse debido a que no recuerdan las prendas que tienen y no saben cómo combinarlas, sumándole el hecho de que muchos usuarios realizan compras innecesarias desconociendo datos acerca de su propio tipo de cuerpo y colorimetría, como al no saber qué tipos de cortes y tonos les favorecen, adquiriendo prendas que terminan sin un solo uso; esto formando parte del consumo desmedido e innecesario de ropa, y acumulación de desperdicio textil que pierde la oportunidad de ser aprovechado por otros. 
+Dressly inició como una aplicación web MVC con vistas Razor en el proyecto `Dressly` (Dressly.Web.csproj). Sin embargo, al evolucionar la arquitectura a hexagonal (ADR-02 y ADR-03), el dominio y los casos de uso quedaron desacoplados de la presentación, lo que abre la posibilidad de agregar otras interfaces sin modificar el núcleo del negocio.
 
-El proyecto busca resolver la pérdida de tiempo y el agobio que sentimos al elegir un outfit, dándonos sugerencias rápidas que ya no sea un proceso cansado; por otro lado, también ayuda en poner orden en el descontrol de prendas del armario, evitando que compremos ropa casi igual a la que ya tenemos solo porque no recordamos que está ahí, de igual manera, resuelve el problema de comprar por impulsividad prendas que no nos favorecen, ayudando a elegir prendas que realmente favorezcan nuestras características físicas. Finalmente, el proyecto ayuda a resolver un problema que persiste actualmente que es el hiperconsumismo de textiles, contribuyendo a la economía circular y facilitando a donarla a quiénes la necesiten y dándole un propósito mejor a lo que ya nos ponemos.
-
-El proyecto va dirigido a personas que buscan una nueva forma de gestionar su guardarropa y buscan tener recomendaciones basadas en sus características físicas, así como personas comprometidas con la economía circular que requieren una vía eficiente para canalizar sus prendas en desuso.
-
+Se identificó la necesidad de exponer la funcionalidad de Dressly mediante una **API REST** independiente del MVC por las siguientes razones:
+- Consumir los servicios desde la rama `Dressly.Gof` para implementar notificaciones SMS/Email.
+- Separar la lógica de presentación web (Razor) de la lógica de intercambio de datos (JSON).
+- Tener una interfaz programática que pueda ser consumida por clientes móviles, scripts de prueba o servicios externos.
 
 ---
 
-## Restricciones 
+## Restricciones
 
-Las restricciones de este proyecto académico, principalmente se cuenta con un tiempo limitado para la entrega y avances para el desarrollo del sistema; de igual manera, el enfoque del proyecto, Dressly, debe centrarse principalmente para la verificar de forma eficiente del flujo de los datos como:
+- Tiempo limitado para la entrega del proyecto académico.
+- Los endpoints deben ser simples y no requerir autenticación JWT (se pasa `usuarioId` directamente en la ruta).
+- Deben reutilizar los servicios y puertos ya definidos en `Dressly.Web` (Application).
+- No se debe modificar el código existente del proyecto MVC ni del dominio.
 
-- El estilo del usuario
-- Gestión del inventario
-- Inteligencia para la vestimenta
-- El apartado para el módulo de economía circular
-
-Implementando estos elementos sin añadir mayores complejidades de red mucho más avanzadas para el principio del proyecto.
+---
 
 ## Decisión
 
-Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura en capas para el desarrollo del proyecto.Con ello, podemos destacar que el estilo se caracteriza por organizar el sistema en capas jerárquicas, en el que cada una tiene una responsabilidad específica y se comunica con las otras capas por medio de interfaces.
+Se creó el proyecto `Dressly.Api` como un proyecto **ASP.NET Core Web API** dentro de la misma solución, que actúa como un **adaptador de entrada** (input adapter) en la arquitectura hexagonal.
 
-### ¿Por qué he optado por esta decisión?
+### Diseño de los controladores
 
-Se eligió esta arquitectura porque permite estructurar de forma clara y ordenada toda la lógica y los datos específicos que maneja el proyecto:
+Se implementaron **6 controladores** en `Dressly.Api/Controllers/`:
 
-* **Organización de los Datos:** Permite separar limpiamente los datos del Core de usuario y biometría (Usuario, Perfil físico, Regla de estilo), la Gestión de inventario (Prenda, Categoría, Temporada), la Inteligencia de vestimenta (Outfit, Ocasión) y el Módulo de economía circular (Lote de Donación, Punto de Donación) en una base de datos centralizada, facilitando que se relacionen entre sí sin problemas de sincronización.
+| Controlador | Ruta base | Endpoints | Métodos |
+|---|---|---|---|
+| `AuthController` | `api/auth` | 2 | `POST login`, `POST register` |
+| `PrendaController` | `api/prenda` | 9 | GET (4), POST (1), PUT (3), DELETE (1) |
+| `OutfitController` | `api/outfit` | 6 | GET (3), POST (2), DELETE (1) |
+| `DonacionController` | `api/donacion` | 8 | GET (3), POST (2), PUT (3) |
+| `PerfilApiController` | `api/perfil` | 2 | GET (1), POST (1) |
+| `UsuarioApiController` | `api/usuario` | 1 | GET (1) |
 
-* **Procesamiento de Reglas:** La capa de negocio centralizará la lógica del sistema, permitiendo cruzar de forma eficiente la matriz lógica de "Regla de estilo" con el "Perfil físico" del usuario para generar las sugerencias rápidas de outfits.
+Total: **26 endpoints REST**.
 
-* **Límites de tiempo:** Desarrollar en capas dentro de un mismo proyecto reduce los tiempos de configuración inicial, permitiéndonos cumplir con los plazos escolares establecidos.
+### Principios de diseño
+
+- **Rutas semánticas**: `api/prenda/usuario/{id}/disponibles`, `api/donacion/{id}/entregar`
+- **`usuarioId` en la ruta**: Se pasa como parámetro de ruta en lugar de usar JWT, simplificando las pruebas.
+- **DTOs de request**: Records específicos (`CreatePrendaRequest`, `RegistrarDonacionRequest`, etc.) para cada operación POST/PUT.
+- **Reutilización de servicios**: Los controladores inyectan directamente los puertos de entrada (`IPrendaService`, `IOutfitService`, etc.) sin contener lógica de negocio.
+- **Namespace consistente**: Todos en `Dressly.Api.Controllers`.
+
+### Correcciones aplicadas
+
+- Los controladores originales llamaban métodos inexistentes (`GetAllAsync`, `AddAsync`). Se reescribieron para llamar a los métodos reales de los servicios (`GetPrendasAsync`, `CrearAsync`).
+- `AuthController` tenía un error de tipo (tupla vs objeto), se corrigió.
+- Se eliminaron controladores MVC (`HomeController`, `PerfilController`, `UsuarioController`) que estaban duplicados dentro del proyecto API.
+- Se eliminó `JsonHelper.cs` (código muerto).
+- Se renombró el namespace `Dressly_MVC.Repositories` → `Dressly.Infrastructure.Repositories` en los 5 repositorios y ambos `Program.cs`.
 
 ---
 
-### Alternativas consideradas y la razón del por qué las descarté para el proyecto
+## Alternativas consideradas
 
-- **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
-
-- **Arquitectura Basada en Eventos**: Se analizó para enviar notificaciones basadas en el "contador de usos" o la "fecha de última vez que se usó" una prenda, pero se descartó porque requiere implementar herramientas de mensajería (como brokers de eventos) que desviarán el enfoque principal en esta fase de boceto.
-
-- **Arquitectura de Tres Capas Simple (Sin lógica intermedia)**: Consiste en conectar la interfaz de usuario directo a la persistencia. Se descartó porque revolvería las reglas de combinación de ropa y colorimetría dentro de las pantallas, haciendo que el sistema sea desordenado y muy difícil de mantener si se añaden nuevas categorías de prendas.
+- **JWT Authentication**: Se consideró implementar autenticación con tokens JWT para identificar al usuario. Se descartó porque añade complejidad innecesaria para un proyecto académico donde el `usuarioId` se conoce y se pasa directamente.
+- **Un solo controlador gigante**: Se evaluó tener un único controlador con todos los endpoints. Se descartó porque viola el principio de responsabilidad única y hace el código difícil de mantener.
+- **Endpoints en el proyecto MVC existente**: Se consideró agregar las rutas API al mismo proyecto web MVC. Se descartó porque mezcla responsabilidades de presentación (Razor) con intercambio de datos (JSON).
 
 ---
 
@@ -62,22 +79,63 @@ Se eligió esta arquitectura porque permite estructurar de forma clara y ordenad
 
 ### Lo que gano
 
-- El sistema se vuelve mucho más fácil de construir y mantener porque si en un futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
-  
-- El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
+- La API puede ser consumida por la rama `Dressly.Gof` y cualquier cliente externo.
+- Los 26 endpoints cubren todas las operaciones CRUD y de negocio definidas en los servicios.
+- Separación limpia entre la interfaz web (MVC) y la interfaz de datos (API).
+- Fácil de probar desde el navegador (GET) o con herramientas como Postman/fetch.
 
 ### Lo que sacrifico o asumo
 
-- Al ser una arquitectura de monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
-  
-- Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje de programación, tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración en la lógica.
+- Sin autenticación, cualquier usuario que conozca un `usuarioId` puede acceder a sus datos.
+- No hay validación de permisos ni roles en la API.
+- Las fotos de prendas no se pueden subir desde la API (no se implementó multipart/form-data).
+- El proyecto `Dressly.Api` comparte las mismas dependencias que el MVC, aumentando el tamaño del build.
+
 ---
 
 ## Diagrama
 
-<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
+```mermaid
+graph TD
+    classDef api fill:#2A9D8F,stroke:#264653,stroke-width:2px,color:#fff;
+    classDef control fill:#E9C46A,stroke:#F4A261,stroke-width:2px;
+    classDef ports fill:#F4A261,stroke:#E76F51,stroke-width:2px;
+    classDef domain fill:#264653,stroke:#2A9D8F,stroke-width:2px,color:#fff;
 
---- 
+    subgraph DresslyApi ["Dressly.Api (REST API)"]
+        Auth["AuthController<br/>POST login, POST register"]
+        Prenda["PrendaController<br/>GET(4) POST(1) PUT(3) DELETE(1)"]
+        Outfit["OutfitController<br/>GET(3) POST(2) DELETE(1)"]
+        Donacion["DonacionController<br/>GET(3) POST(2) PUT(3)"]
+        Perfil["PerfilApiController<br/>GET(1) POST(1)"]
+        Usuario["UsuarioApiController<br/>GET(1)"]
+    end
+    class DresslyApi api;
+
+    subgraph Application ["Dressly.Web (Application)"]
+        InputPorts["Puertos de Entrada<br/>IAuthService, IPrendaService,<br/>IOutfitService, IDonacionService,<br/>IPerfilService, IUsuarioService"]
+        UseCases["Casos de Uso<br/>AuthService, PrendaService,<br/>OutfitService, DonacionService,<br/>PerfilService, UsuarioService"]
+    end
+    class Application ports;
+
+    subgraph Domain ["Dressly.Domain"]
+        Entities["Entidades<br/>Usuario, Prenda, Outfit,<br/>LoteDonacion, PuntoONG, PerfilFisico"]
+        Services["Servicios de Dominio<br/>ColorimetriaService,<br/>PerfilConocimientoService"]
+    end
+    class Domain domain;
+
+    Auth --> InputPorts
+    Prenda --> InputPorts
+    Outfit --> InputPorts
+    Donacion --> InputPorts
+    Perfil --> InputPorts
+    Usuario --> InputPorts
+    InputPorts --> UseCases
+    UseCases --> Entities
+    UseCases --> Services
+```
+
+---
 
 ## Declaración de uso de IA
 
