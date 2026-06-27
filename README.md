@@ -1,23 +1,26 @@
-# ADR-01-Giovana-Diaz
+# ADR-02-Giovana-Diaz
 
-# ADR-01: Selección del Estilo Arquitectónico en Capas para el Sistema: Dressly
+# ADR-02: Adopción de Arquitectura Hexagonal para Dressly
 
 | Campo  | Valor |
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
-| Fecha  | 15/05/2026 |
+| Fecha  | Viernes 11 de junio de 2026 |
 | Estado | `Propuesto` |
 
 ---
 
 ## Contexto
 
-Actualmente, muchas personas se responden una pregunta que se realizan todos los días: ¿Qué outfit me pondré hoy?, esto puede llegar a ser cansado para algunos, pues a pesar de contar con ropa suficiente dentro de su armario, ocurre ese sentimiento de no saber qué ponerse debido a que no recuerdan las prendas que tienen y no saben cómo combinarlas, sumándole el hecho de que muchos usuarios realizan compras innecesarias desconociendo datos acerca de su propio tipo de cuerpo y colorimetría, como al no saber qué tipos de cortes y tonos les favorecen, adquiriendo prendas que terminan sin un solo uso; esto formando parte del consumo desmedido e innecesario de ropa, y acumulación de desperdicio textil que pierde la oportunidad de ser aprovechado por otros. 
+Dressly es una aplicación web desarrollada en .NET Core 10 que busca resolver el agobio diario de elegir un outfit, el desorden del guardarropa y el hiperconsumismo textil. El sistema gestiona el inventario de prendas mediante fotos reales, genera sugerencias de outfits basadas en colorimetría y fisonomía del usuario, y facilita la donación de ropa en desuso a redes de ONGs promoviendo la economía circular.
 
-El proyecto busca resolver la pérdida de tiempo y el agobio que sentimos al elegir un outfit, dándonos sugerencias rápidas que ya no sea un proceso cansado; por otro lado, también ayuda en poner orden en el descontrol de prendas del armario, evitando que compremos ropa casi igual a la que ya tenemos solo porque no recordamos que está ahí, de igual manera, resuelve el problema de comprar por impulsividad prendas que no nos favorecen, ayudando a elegir prendas que realmente favorezcan nuestras características físicas. Finalmente, el proyecto ayuda a resolver un problema que persiste actualmente que es el hiperconsumismo de textiles, contribuyendo a la economía circular y facilitando a donarla a quiénes la necesiten y dándole un propósito mejor a lo que ya nos ponemos.
+En el primer ADR se optó por una arquitectura en capas (Presentación -> Negocio -> Datos) como decisión inicial, justificada por la velocidad de configuración y la calidad estructural para el arranque del proyecto académico; sin embargo, al avanzar con el desarrollo surgieron nuevos requerimientos que esa arquitectura no puede satisfacer sin modificar el núcleo del sistema:
 
-El proyecto va dirigido a personas que buscan una nueva forma de gestionar su guardarropa y buscan tener recomendaciones basadas en sus características físicas, así como personas comprometidas con la economía circular que requieren una vía eficiente para canalizar sus prendas en desuso.
+- Principalmente se requiere desplegar Dressly en un servidor AWS (Amazon EC2 / ECS), lo que implica integrar proveedores de infrastructura cloud como Amazon RD, Amazon S3 y APIs externas de ONGs.
+- El sistema debe soportar múltiples tipos de persistencia de forma intercambiable: archivos JSON en memoria para el desarrollo local, Amazon RDS o DynamoDB para producción, y Amazon S3 para almacenamiento de imágenes.
+- La lógica del negocio (reglas de colorimetría, generación de outfits, gestión de donaciones debe poder porbarse de forma aislada sin depender de infrastructura real.
 
+En la arquitectura en capas, cambiar el proveedor de datos o agregar soporte cloud implica modificar directamente la capa de negocio, violando el principio de que el dominio no debe depender de detalles de infrastructura. Esto hace necesario adoptar un estilo arquitectónico que desacople el dominio desde el diseño, permitiendo que los detalles de infrastructura sean intercambiables sin afectar la lógica dentral del sistema.
 
 ---
 
@@ -30,55 +33,64 @@ Las restricciones de este proyecto académico, principalmente se cuenta con un t
 - Inteligencia para la vestimenta
 - El apartado para el módulo de economía circular
 
-Implementando estos elementos sin añadir mayores complejidades de red mucho más avanzadas para el principio del proyecto.
+---
 
 ## Decisión
+Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura hexagonal (Ports and Adapaters) para el desarrollo del proyecto, reemplazando la arquitectura en capas establecida anteriormente.
 
-Después de investigar y analizar las diferentes opciones de estilos arquitectónicos que existen, se ha optado en adoptar un enfoque de arquitectura en capas para el desarrollo del proyecto.Con ello, podemos destacar que el estilo se caracteriza por organizar el sistema en capas jerárquicas, en el que cada una tiene una responsabilidad específica y se comunica con las otras capas por medio de interfaces.
+La arquitectura hexagonal organiza el sistema en tres zonas:
+- *Dominio:* contiene toda la lógica de negocio pura, pues están las reglas de estilo, colorimtería, gestión de prendas y donaciones. No depende de ningún framework, base de datos ni protocolo de red.
+- *Puertos:* Interfaces C# que definen los contratos de comunicación de dominio, los puertos definen cómo el exterior invoca al dominio. Los puertos de salida definen qué servicios externos necesita el dominio.
+- *Adaptadores:* implementaciones concretas de los puertos, intercambiables sin tocar el dominio.
+
 
 ### ¿Por qué he optado por esta decisión?
 
-Se eligió esta arquitectura porque permite estructurar de forma clara y ordenada toda la lógica y los datos específicos que maneja el proyecto:
+Se eligió esta arquitectura porque permite resuelve directamente los tres problemas identificador en el contexto:
 
-* **Organización de los Datos:** Permite separar limpiamente los datos del Core de usuario y biometría (Usuario, Perfil físico, Regla de estilo), la Gestión de inventario (Prenda, Categoría, Temporada), la Inteligencia de vestimenta (Outfit, Ocasión) y el Módulo de economía circular (Lote de Donación, Punto de Donación) en una base de datos centralizada, facilitando que se relacionen entre sí sin problemas de sincronización.
-
-* **Procesamiento de Reglas:** La capa de negocio centralizará la lógica del sistema, permitiendo cruzar de forma eficiente la matriz lógica de "Regla de estilo" con el "Perfil físico" del usuario para generar las sugerencias rápidas de outfits.
-
-* **Límites de tiempo:** Desarrollar en capas dentro de un mismo proyecto reduce los tiempos de configuración inicial, permitiéndonos cumplir con los plazos escolares establecidos.
+- **Desacoplamiento de infrastructura:** el dominio de Dressly no conoce si los datos se guardan en JSO, RDS o DynamoDB. La lógica de colorimetría y generación de outfits puede desarrollarse, probarse y modificarse completamente independiente del proveedor de persistencia.
+- **Soporte para múltiples bases de datos:** se pueden registrar distintos adaptadores según el entorno mediante inyección de dependencias, sin cambiar una sola línea del dominio.
+- **Despliegue en AWS sin fricción:** la capa de infrastructura (adaptadores AWS) se configura de forma independiente. La aplicación arranca con adaptadores locales en desarrollo y con adaptadores cloud en producción usando variables de entorno, sin que el dominio sepa en cuál entorno se encuentra.
 
 ---
+## Alternativas consideradas y la razón del por qué las descarté para el proyecto
 
-### Alternativas consideradas y la razón del por qué las descarté para el proyecto
-
-- **Arquitectura de Microservicios** : la pensé pues permite aislar el módulo de donación o la inteligencia de vestimenta en servidores independiente; sin embargo, la descarté porque añade una complejidad alta para la comunicación de red y bases de datos distribuida, y se sobrepasa del tiempo disponible para el proyecto.
-
-- **Arquitectura Basada en Eventos**: Se analizó para enviar notificaciones basadas en el "contador de usos" o la "fecha de última vez que se usó" una prenda, pero se descartó porque requiere implementar herramientas de mensajería (como brokers de eventos) que desviarán el enfoque principal en esta fase de boceto.
-
-- **Arquitectura de Tres Capas Simple (Sin lógica intermedia)**: Consiste en conectar la interfaz de usuario directo a la persistencia. Se descartó porque revolvería las reglas de combinación de ropa y colorimetría dentro de las pantallas, haciendo que el sistema sea desordenado y muy difícil de mantener si se añaden nuevas categorías de prendas.
-
+- *Arquitectura en capas:* fue la decisión principal para mi proyecto pero he decidido descartarla porque genera un acomplamiento directo entre la lógica de negocio y la infrastructura; es decir, cuando necesite cambiar el proveedor de base de datos o agregar un soporte para AWS implicaría modificar la capa de negocio. No cumple con el requerimiento de múltiples adaptadores de persistencia intercambiables.
+- *Microservicios:* permite aisla cada módulo (inventario, donación, sugerencias) en servicios independientes. Se descarta porque introduce una complejidad operativa alta, pues la comunicación entre servicios, gestión de red distribuida, múltiples despliegues, que está fuera del alcance del proyecto académico en esta fase.
+- *Serverless (AWS Lambda):* permite ejecutar funciones sin administrar servidores, ideal para el módulo de sugerencias de outfits. Se descarta porque el modelo sin estado de Lambda no se adapta bien a la gestión de sesiones y al flujo continuo del guardarropa personal. Podría incorporarse como adaptador específico en una fase posterior.
+- *Event-Driven:* adecuada para disparar notificaciones basadas en el contador de usos de una prenda o la fecha de última vez usada. Se descarta porque requiere implementar un broker de eventos (SNS/SQS en AWS) que añade complejidad de infrastructura innecesaria en la fase actual.
+  
 ---
 
 ## Consecuencias
 
 ### Lo que gano
 
-- El sistema se vuelve mucho más fácil de construir y mantener porque si en un futuro necesitamos cambiar las reglas de estilo o agregar nuevos tipos de prendas, solo modificamos la capa de negocio sin alterar cómo se guardan los datos o cómo se ve la aplicación.
-  
-- El ritmo de trabajo es más rápido y fluido, ya que nos podemos concentrar en programar las funciones principales de la aplicación (como el ropero virtual o el sistema de donación) en lugar de perder tiempo configurando conexiones de red complejas.
+- El dominio de Dressly es completamente independiente de la infrastructura: se puede desarrollar, probar y modificar sin depender de AWS ni de ningún proveedor de base de datos.
+- Cambiar entre JSON (desarrollo) y RDS/DynamoDB (producción) es una configuración de inyección de dependencias, no un cambio de código en el dominio.
+- El despliegue en AWS EC2/ECS se vuelve una decisión de infrastructura, no arquitectónica, el dominiono no sabe en qué entorno está corriendo.
+- La lógica de colorimetría, generación de outfits y donación queda protegida de cambios tecnológicos externos: si mañana se cambia S3 por otro proveedor de almacenamiento, solo se escribe un nuevo adaptador.
+- El ritmo de desarrollo es más fluido proque se puede trabajar localmente con JSON y mocks sin necesitar conexión a AWS en ningún momento del desarrollo.
+
 
 ### Lo que sacrifico o asumo
 
-- Al ser una arquitectura de monolito en capas, si la aplicación llega a fallar críticamente en el módulo de análisis de imágenes, todo el sistema (incluyendo el catálogo de ropa del usuario) podría dejar de funcionar temporalmente hasta que se reinicie el servidor.
+- Al seguir siendo un monolito, si el módulo de análisis de imágenes presenta un fallo crítico, todo el sistema puede verse afectado hasta que se reinicie el servidor.
+- La estructura inicial del proyecto requiere más planificación que una arquitectura en capas: es necesario definir los puertos antes de implementar los adaptadores, lo que implica un mayor esfuerzo de diseño al inicio.
+- Para el equipo, la curva de aprendizajes es mayor que con capas tradicionales, pues el patrón de puertos y adaptadores requiere comprender la separación entre contrato e implementación.
+- Si el proyecto no crece más allá del alcance académico, parte de la flexibilidad ganada (múltiples adaptadores, despliegue en AWS) no llegará a usarse en la práctica.
   
-- Si el proyecto crece demasiado en el futuro y decidimos que el procesamiento de imágenes con Inteligencia Artificial necesita su propio servidor exclusivo en otro lenguaje de programación, tendremos que separar ese código de las capas actuales, lo que requerirá una reestructuración en la lógica.
 ---
 
 ## Diagrama
 
-<img width="1920" height="1080" alt="Base de Datos Centralizada" src="https://github.com/user-attachments/assets/a8fb5eae-8dd3-44be-9987-ae7d7a5741cf" />
+<img width="1324" height="1124" alt="Diagrama_Hexagonal" src="https://github.com/user-attachments/assets/521a936b-1f23-476a-89e8-adbd0ba5b7a5" />
 
---- 
 
-## Declaración de uso de IA
+He decidido implementar mi diagrama de forma circular por la facilidad de realización y al investigar, un diagrama hexagonal es más conveniente que se utilice de forma circular por la implementación de los puertos y los adaptadores, pues no es necesario que tenga una implementación de seis adaptadores.
 
-Para la elaboración de este ADR se utilizó Claude (Anthropic) como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly son propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
+---
+
+## Declaración de uso de inteligencia artificial
+
+Para el desarrollo de este ADR se utilizó Claude *(Antropic)* como herramienta de asistencia en la redacción y estructuración del documento. Todas las decisiones de diseño, el análisis de alternativas y la justificación técnica aplicada al contexto de Dressly con propias de la autora. La IA fue utilizada como apoyo para expresar y documentar de forma clara las decisiones previamente razonadas.
