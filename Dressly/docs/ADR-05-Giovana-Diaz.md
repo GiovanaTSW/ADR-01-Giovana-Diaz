@@ -47,3 +47,27 @@ public static IPrendaRepository CreatePrendaRepository(string environment, IServ
     return new PrendaRepository(); // JSON
 }
 ```
+
+**Resultado:** `Program.cs` solo llama a `RepositoryFactory.CreatePrendaRepository(env, sp)` y obtiene la instancia correcta. Agregar un nuevo adaptador (por ejemplo, PostgreSQL) solo requiere añadir un caso en el factory, sin tocar ningún otro archivo.
+
+---
+
+### 2. Observer — `IEventObserver<TEvent>` + `ConsoleNotifier`
+
+**Problema:** `PrendaService` y `OutfitService` deben notificar eventos del dominio (`PrendaCreadaEvent`, `OutfitGeneradoEvent`, `DonacionRegistradaEvent`) sin acoplarse a los componentes que los consumen.
+
+**Solución:** Se define el puerto de salida `IEventObserver<TEvent>` en `Dressly.Web` (Application). Los servicios mantienen una lista de observers suscritos y los notifican al final de la operación. `ConsoleNotifier<TEvent>` en `Dressly.Infrastructure` es el adaptador concreto que implementa ese puerto.
+
+```csharp
+// Dressly.Web/Ports/Output/IEventObserver.cs
+public interface IEventObserver<in TEvent>
+{
+    Task HandleAsync(TEvent evento);
+}
+
+// Dressly.Web/UseCases/PrendaService.cs
+var evento = new PrendaCreadaEvent(prenda.UsuarioId, prenda.Id, prenda.Nombre, DateTime.Now);
+foreach (var obs in _prendaCreadaObservers)
+    await obs.HandleAsync(evento);
+```
+
