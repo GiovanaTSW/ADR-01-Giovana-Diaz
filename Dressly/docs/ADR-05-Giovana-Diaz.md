@@ -71,3 +71,36 @@ foreach (var obs in _prendaCreadaObservers)
     await obs.HandleAsync(evento);
 ```
 
+```csharp
+// Dressly.Infrastructure/Notifications/ConsoleNotifier.cs
+public Task HandleAsync(TEvent evento)
+{
+    _logger.LogInformation("[NOTIFICACION] {Evento}", evento);
+    return Task.CompletedTask;
+}
+```
+
+**Resultado:** Cuando el usuario crea una prenda o guarda un outfit, `ConsoleNotifier` recibe el evento y lo registra en consola. Agregar un nuevo observer (email real, webhook, etc.) solo requiere implementar `IEventObserver<T>` y suscribirlo, sin modificar los servicios.
+
+---
+
+### 3. Decorator — `LoggingPrendaRepository` y familia
+
+**Problema:** Se necesita registrar cada operación de repositorio (método invocado, parámetros, resultado) sin modificar las implementaciones concretas de JSON, CSV ni SQLite.
+
+**Solución:** Cuatro clases Decorator en `Dressly.Infrastructure/Repositories/Decorators/` envuelven cada repositorio concreto. Implementan el mismo puerto de salida, delegan la operación al repositorio interno (`_inner`) y registran la entrada y salida con timestamp.
+
+```csharp
+// Dressly.Infrastructure/Repositories/Decorators/LoggingPrendaRepository.cs
+public async Task<List<Prenda>> GetByUsuarioIdAsync(int usuarioId)
+{
+    Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] PrendaRepository.GetByUsuarioIdAsync({usuarioId}) - inicio");
+    var result = await _inner.GetByUsuarioIdAsync(usuarioId);
+    Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] PrendaRepository.GetByUsuarioIdAsync({usuarioId}) - {result.Count} items");
+    return result;
+}
+```
+
+**Resultado:** Cada llamada a repositorio queda registrada en consola con timestamp, nombre del método, parámetros y resultado, sin que `PrendaRepository`, `SqlitePrendaRepository` ni ningún otro adaptador sepa que está siendo decorado.
+
+---
