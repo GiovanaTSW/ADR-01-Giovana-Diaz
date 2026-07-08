@@ -9,7 +9,7 @@
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
 | Fecha  | 26/06/2026 |
-| Estado | `Propuesto` |
+| Estado | `Reemplazado por ADR 06` |
 
 ---
 
