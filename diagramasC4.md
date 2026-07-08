@@ -82,3 +82,73 @@ flowchart TD
 
 ---
 
+## Nivel 3 — Componentes
+
+*Para quién es:* quien va a modificar o revisar el código de la capa de aplicación (Dressly.Web) e infraestructura.
+*Pregunta que responde:* ¿Qué hay dentro del hexágono — qué servicios, puertos y patrones GOF ya implementados soportan los Pilares 2, 3 y 4?
+
+```mermaid
+flowchart TD
+    subgraph PuertosIn["Dressly.Web / Ports/Input"]
+        IOS["IOutfitService"]
+        IDS["IDonacionService"]
+        INS["INegocioPacaService\n(NUEVO - Pilar 2)"]
+        IPS3["IPatrocinioService\n(NUEVO - Pilar 3)"]
+        IIS["IIntercambioService\n(NUEVO - Pilar 4)"]
+    end
+    subgraph UseCases["Dressly.Web / UseCases"]
+        OS["OutfitService\n(extendido: sugiere NegocioPaca\ncuando falta prenda - Pilar 2)"]
+        DS["DonacionService\n(existente)"]
+        NPS["NegocioPacaService\n(NUEVO - Pilar 2)"]
+        PTS["PatrocinioService\n(NUEVO - genera reporte\nde trazabilidad - Pilar 3)"]
+        ITS["IntercambioService\n(NUEVO - maquina de estados\nPublicado-Propuesto-Aceptado-Completado - Pilar 4)"]
+    end
+    subgraph PuertosOut["Dressly.Web / Ports/Output"]
+        IOR["IOutfitRepository"]
+        IDR["IDonacionRepository"]
+        INR["INegocioPacaRepository\n(NUEVO)"]
+        IPR3["IPatrocinioRepository\n(NUEVO)"]
+        IIR["IIntercambioRepository\n(NUEVO)"]
+        IEO["IEventObserver<T>"]
+    end
+    subgraph Infra["Dressly.Infrastructure"]
+        RF["RepositoryFactory\n(Factory Method - ADR-05)"]
+        LOG["LoggingXRepository x N\n(Decorator - ADR-05)"]
+        CN["ConsoleNotifier<T>\n(Observer - ADR-05)"]
+    end
+    IOS --> OS
+    IDS --> DS
+    INS --> NPS
+    IPS3 --> PTS
+    IIS --> ITS
+    OS --> IOR
+    OS --> INR
+    DS --> IDR
+    PTS --> IDR
+    PTS --> IPR3
+    NPS --> INR
+    ITS --> IIR
+    OS --> IEO
+    DS --> IEO
+    ITS --> IEO
+    IOR --> RF
+    IDR --> RF
+    INR --> RF
+    IPR3 --> RF
+    IIR --> RF
+    RF --> LOG
+    IEO --> CN
+
+    classDef existente fill:#E6F1FB,stroke:#185FA5,color:#042C53
+    classDef pilar2 fill:#E1F5EE,stroke:#0F6E56,color:#04342C
+    classDef pilar3 fill:#FAEEDA,stroke:#854F0B,color:#412402
+    classDef pilar4 fill:#FBEAF0,stroke:#993556,color:#4B1528
+    classDef infra fill:#EEEDFE,stroke:#534AB7,color:#26215C
+
+    class IOS,OS,IOR,IDS,DS,IDR,IEO existente
+    class INS,NPS,INR pilar2
+    class IPS3,PTS,IPR3 pilar3
+    class IIS,ITS,IIR pilar4
+    class RF,LOG,CN infra
+```
+
