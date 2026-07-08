@@ -61,3 +61,77 @@ flowchart TD
     INF -->|"lee/escribe"| JSON
     INF -->|"lee/escribe"| SQLITE
 ```
+---
+
+## Nivel 3 — Componentes
+
+**Para quién es:** quien va a modificar o revisar el código de la capa de aplicación (`Dressly.Web`) e infraestructura.
+**Pregunta que responde:** ¿Qué hay dentro del hexágono — qué servicios, puertos y patrones GOF ya implementados soportan los Pilares 2, 3 y 4?
+
+```mermaid
+flowchart TD
+    subgraph PuertosIn["Dressly.Web / Ports/Input"]
+        IOS["IOutfitService"]
+        IDS["IDonacionService"]
+        INS["INegocioPacaService\n(NUEVO - Pilar 2)"]
+        IPS3["IPatrocinioService\n(NUEVO - Pilar 3)"]
+        IIS["IIntercambioService\n(NUEVO - Pilar 4)"]
+    end
+
+    subgraph UseCases["Dressly.Web / UseCases"]
+        OS["OutfitService\n(extendido: sugiere NegocioPaca\ncuando falta prenda - Pilar 2)"]
+        DS["DonacionService\n(existente)"]
+        NPS["NegocioPacaService\n(NUEVO - Pilar 2)"]
+        PTS["PatrocinioService\n(NUEVO - genera reporte\nde trazabilidad - Pilar 3)"]
+        ITS["IntercambioService\n(NUEVO - maquina de estados\nPublicado-Propuesto-Aceptado-Completado - Pilar 4)"]
+    end
+
+    subgraph PuertosOut["Dressly.Web / Ports/Output"]
+        IOR["IOutfitRepository"]
+        IDR["IDonacionRepository"]
+        INR["INegocioPacaRepository\n(NUEVO)"]
+        IPR3["IPatrocinioRepository\n(NUEVO)"]
+        IIR["IIntercambioRepository\n(NUEVO)"]
+        IEO["IEventObserver<T>"]
+    end
+
+    subgraph Infra["Dressly.Infrastructure"]
+        RF["RepositoryFactory\n(Factory Method - ADR-05)"]
+        LOG["LoggingXRepository x N\n(Decorator - ADR-05)"]
+        CN["ConsoleNotifier<T>\n(Observer - ADR-05)"]
+    end
+
+    IOS --> OS
+    IDS --> DS
+    INS --> NPS
+    IPS3 --> PTS
+    IIS --> ITS
+
+    OS --> IOR
+    OS --> INR
+    DS --> IDR
+    PTS --> IDR
+    PTS --> IPR3
+    NPS --> INR
+    ITS --> IIR
+
+    OS --> IEO
+    DS --> IEO
+    ITS --> IEO
+
+    IOR --> RF
+    IDR --> RF
+    INR --> RF
+    IPR3 --> RF
+    IIR --> RF
+    RF --> LOG
+    IEO --> CN
+```
+
+---
+
+### Notas de lectura
+
+- Los componentes marcados **NUEVO** corresponden a los Pilares 2, 3 y 4 (ADR-06). El resto (`RepositoryFactory`, `LoggingXRepository`, `ConsoleNotifier<T>`) ya existía desde ADR-05 y se reutiliza sin modificación para los dominios nuevos.
+- El Pilar 1 (suscripción premium) se dejó fuera de estos diagramas a propósito, según lo decidido en ADR-06.
+- Diagramas escritos como código Mermaid dentro de este `.md`, con alias simples y sin bloques `rect`/`Note`, para que rendericen correctamente en GitHub.
