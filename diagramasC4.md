@@ -29,3 +29,35 @@ flowchart TD
 
 ---
 
+## Nivel 2 — Contenedores
+
+**Para quién es:** desarrolladores y arquitectos del equipo (o quien revise el repo técnicamente).
+**Pregunta que responde:** ¿Cuáles son las piezas técnicas grandes de Dressly y cómo se comunican entre sí?
+
+```mermaid
+flowchart TD
+    USR(["Usuario"])
+    EMP(["Empresa Patrocinadora"])
+    NEG(["Negocio de Paca"])
+
+    subgraph SIS["Dressly"]
+        WEB["Dressly\nASP.NET Core MVC\nInterfaz web tradicional"]
+        API["Dressly.Api\nASP.NET Core Web API\nInterfaz REST"]
+        APP["Dressly.Web\nPuertos + Casos de Uso\nCapa de aplicacion hexagonal"]
+        DOM["Dressly.Domain\nEntidades, eventos,\nservicios de dominio"]
+        INF["Dressly.Infrastructure\nAdaptadores: repos, decorators,\nfactory, notifications"]
+        JSON[("Datos JSON/CSV\n(Development)")]
+        SQLITE[("SQLite\n(Production)")]
+    end
+
+    USR -->|"HTTP/HTML"| WEB
+    USR -->|"HTTP/JSON"| API
+    EMP -->|"consulta reporte via HTTP"| API
+    NEG -->|"registra/actualiza perfil via HTTP"| API
+    WEB -->|"llama"| APP
+    API -->|"llama"| APP
+    APP -->|"usa reglas de"| DOM
+    APP -->|"puertos de salida"| INF
+    INF -->|"lee/escribe"| JSON
+    INF -->|"lee/escribe"| SQLITE
+```
