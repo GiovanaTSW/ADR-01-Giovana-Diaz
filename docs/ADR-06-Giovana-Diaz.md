@@ -68,3 +68,21 @@ La identidad Kibbe se modela aparte de `TipoCuerpo` porque el propio sistema Kib
 | **Implementar de una vez el sistema completo de 12 sub-estaciones (ej. Otoño profundo)** | Implica rehacer las 4 paletas ya construidas y migrar perfiles existentes; se descarta por alcance y tiempo académico. |
 | **Seguir extendiendo `SonCompatibles()` con más condicionales** | Repetiría el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05 para otras capas del sistema. |
 
+---
+
+## Consecuencias
+
+**✅ Lo que gano:**
+
+- **Técnica:** los tres pilares y los tres componentes de perfil se integran como dominios/extensiones aditivas con sus propios puertos, sin tocar `PrendaService`, `UsuarioService`, `TipoCuerpoInfo`, `ColorimetriaInfo` ni la infraestructura de Factory/Decorator/Observer ya construida en ADR-05.
+- **Proceso:** cada pilar y cada concepto de perfil puede desarrollarse y probarse de forma independiente (una rama o commit por dominio), lo que facilita mostrar avance incremental en vez de una sola entrega monolítica.
+
+**⚠️ Lo que sacrifico o asumo:**
+
+- **Limitación técnica:** al no implementar el Pilar 1, Dressly se queda sin el ingreso recurrente más predecible y sin el caso de uso más simple de mostrar (un gate de autorización); si se retoma después, deberá integrarse sin conflicto con los tres dominios nuevos. Además, los perfiles ya existentes tendrán `IdentidadKibbe` y `Saturacion` nulos hasta que el usuario actualice su perfil, por lo que la lógica que los consuma debe tolerar la ausencia de dato.
+- **Deuda o riesgo:** los tres pilares elegidos son, en conjunto, más costosos de construir que la combinación anterior — introducen tres entidades nuevas, un caso de uso de reporte, y un sistema completo de estados de intercambio — lo que aumenta el riesgo de quedar incompleto si el tiempo antes de la exposición se reduce. Además, el Pilar 3 sigue dependiendo de que las ONGs reales tramiten su registro de donataria autorizada ante el SAT, algo que no se puede resolver solo con código. Del lado de perfil, quedan fuera de alcance deliberadamente los aspectos de cabello y maquillaje del documento original, por no pertenecer al dominio de guardarropa de Dressly.
+
+---
+
+## Cláusula de IA
+En este documento se ha utilizado Claude para la corrección de errores, estructuración del ADR según el formato oficial del curso y sugerencias para la redacción. Todas las ideas y decisiones de diseño son propias de la autora y no fueron generadas por la IA.
