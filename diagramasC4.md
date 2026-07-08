@@ -33,3 +33,52 @@ flowchart TD
     class NEG,ONG externo
 ```
 
+---
+
+## Nivel 2 — Contenedores
+
+*Para quién es:* los desarrolladores y arquitectos del equipo o para quienes revisan el codigo de forma técnica.
+*Pregunta que responde:* ¿Cuáles son las piezas técnicas grandes de Dressly y cómo se comunican entre sí?
+
+```mermaid
+flowchart TD
+    USR(["Usuario"])
+    EMP(["Empresa Patrocinadora"])
+    NEG(["Negocio de Paca"])
+    subgraph SIS["Dressly"]
+        WEB["Dressly\nASP.NET Core MVC\nInterfaz web tradicional"]
+        API["Dressly.Api\nASP.NET Core Web API\nInterfaz REST"]
+        APP["Dressly.Web\nPuertos + Casos de Uso\nCapa de aplicacion hexagonal"]
+        DOM["Dressly.Domain\nEntidades, eventos,\nservicios de dominio"]
+        INF["Dressly.Infrastructure\nAdaptadores: repos, decorators,\nfactory, notifications"]
+        JSON[("Datos JSON/CSV\n(Development)")]
+        SQLITE[("SQLite\n(Production)")]
+    end
+    USR -->|"HTTP/HTML"| WEB
+    USR -->|"HTTP/JSON"| API
+    EMP -->|"consulta reporte via HTTP"| API
+    NEG -->|"registra/actualiza perfil via HTTP"| API
+    WEB -->|"llama"| APP
+    API -->|"llama"| APP
+    APP -->|"usa reglas de"| DOM
+    APP -->|"puertos de salida"| INF
+    INF -->|"lee/escribe"| JSON
+    INF -->|"lee/escribe"| SQLITE
+
+    classDef persona fill:#E1F5EE,stroke:#0F6E56,color:#04342C
+    classDef entrada fill:#EEEDFE,stroke:#534AB7,color:#26215C
+    classDef aplicacion fill:#E6F1FB,stroke:#185FA5,color:#042C53
+    classDef dominio fill:#FAEEDA,stroke:#854F0B,color:#412402
+    classDef infra fill:#FAECE7,stroke:#993C1D,color:#4A1B0C
+    classDef datos fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+
+    class USR,EMP,NEG persona
+    class WEB,API entrada
+    class APP aplicacion
+    class DOM dominio
+    class INF infra
+    class JSON,SQLITE datos
+```
+
+---
+
