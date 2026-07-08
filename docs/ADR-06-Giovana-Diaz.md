@@ -29,3 +29,30 @@ Las restricciones siguen siendo las mismas que en ADRs anteriores: tiempo acadé
 
 Por otro lado, se busca hacerle mejoras al proyecto dejando de lado una parte más genérica y enfocándome en la parte del perfil del usuario, pues se busca implementar nuevos patrones de implementación al momento de que el usuario decida qué tipo de prendas sea la cuál más le acomode todo esto basado en un sistema llamado kibbe
 
+---
+
+## Decisión
+
+Se incorporan tres dominios nuevos al hexágono existente, cada uno resolviendo uno de los pilares:
+
+**Pilar 2 — Publicidad de negocios de paca:** nueva entidad `NegocioPaca` (nombre, dirección, categoría de prenda, coordenadas, contacto) con su puerto de salida `INegocioPacaRepository`. `OutfitService` se extiende con una lógica de "prenda faltante": cuando detecta que a un outfit le falta una pieza para combinar, sugiere un `NegocioPaca` cercano en vez de una marca externa.
+
+**Pilar 3 — Patrocinio corporativo vía ONGs:** nueva entidad `Empresa` (razón social, RFC, estatus de donataria autorizada) y una entidad `Patrocinio` que vincula una `Empresa` con uno o más `PuntoONG` ya existentes. Se agrega un caso de uso de **reporte de trazabilidad** (prendas donadas, lotes, usuarios impactados por punto ONG) que la empresa puede consultar como comprobante de su responsabilidad social.
+
+**Pilar 4 — Trueque entre usuarios:** nueva entidad `Intercambio` con estado (`Publicado` → `Propuesto` → `Aceptado`/`Rechazado` → `Completado`), un nuevo caso de uso `IntercambioService`, y una comisión por transacción facilitada.
+
+**Identidad Kibbe:** nueva entidad `IdentidadKibbeInfo` paralela a `TipoCuerpoInfo` (no reemplazo), con familia (Dramático, Natural, Clásico, Gamine, Romántico), líneas favorecedoras y prendas recomendadas/evitar. Campo nuevo en `PerfilFisico` para guardar la identidad Kibbe del usuario. `IPerfilConocimientoService` se extiende con `ObtenerInfoKibbe()`.
+
+**Eje de Saturación:** campo nuevo en `PerfilFisico`, adicional a subtono y contraste, sin modificar `DetectarEstacion()` existente — deja base para un futuro sistema de 12 sub-estaciones sin rehacer las 4 paletas actuales.
+
+**Strategy de combinación cromática:** nueva interfaz `IEstrategiaCombinacionColor` con implementaciones `EstrategiaMonocromatica`, `EstrategiaAnaloga`, `EstrategiaComplementaria` y `EstrategiaTriada`, que reemplazan la regla única de `SonCompatibles()`.
+
+
+### ¿Por qué?
+
+Modelar cada pilar como una entidad y un puerto propios — en vez de forzarlos dentro de entidades existentes — mantiene el principio ya establecido en ADR-03/ADR-05: el dominio crece por adición, no por modificación de lo que ya funciona. `NegocioPaca` no reutiliza `PuntoONG` porque, aunque ambos son "lugares externos", responden a relaciones de negocio distintas (publicidad pagada vs. donación altruista). Igual, `Intercambio` no se modela como una extensión de `LoteDonacion` porque el trueque tiene un ciclo de vida transaccional (propuesta → aceptación) que la donación no tiene — mezclarlos habría forzado un estado y una semántica que no le corresponden a `LoteDonacion`.
+
+El reporte de trazabilidad se apoya directamente en las tablas de dominio que ya existen (`PuntoONG`, `LoteDonacion`), por lo que es la pieza más barata de las tres — solo agrega una capa de consulta/agregación, no un nuevo flujo transaccional.
+
+La identidad Kibbe se modela aparte de `TipoCuerpo` porque el propio sistema Kibbe advierte que confundir forma con identidad es el error más común al aplicarlo — son dos preguntas distintas ("qué silueta tengo" vs. "qué líneas me favorecen"). El eje de Saturación es aditivo para no romper `DetectarEstacion()` ni forzar una migración de datos existentes. El Strategy de combinación cromática resuelve el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05: una regla única que no puede crecer sin volverse un bloque de condicionales.
+
