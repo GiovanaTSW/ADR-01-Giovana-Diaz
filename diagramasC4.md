@@ -6,7 +6,7 @@ Arquitectura documentada como código (Mermaid), versionada en el repositorio. R
 
 ## Nivel 1 — Contexto
 
-**Para quién es:** cualquier persona no técnica — el profesor, una empresa patrocinadora, un negocio local. No requiere saber nada de código.
+**Para quién es:** cualquier persona no técnica: una empresa patrocinadora, un negocio local. No requiere saber nada de código.
 **Pregunta que responde:** ¿Qué es Dressly y quién interactúa con él?
 
 ```mermaid
@@ -31,7 +31,7 @@ flowchart TD
 
 ## Nivel 2 — Contenedores
 
-**Para quién es:** desarrolladores y arquitectos del equipo (o quien revise el repo técnicamente).
+**Para quién es:** los desarrolladores y arquitectos del equipo o para quienes revisan el codigo de forma técnica.
 **Pregunta que responde:** ¿Cuáles son las piezas técnicas grandes de Dressly y cómo se comunican entre sí?
 
 ```mermaid
