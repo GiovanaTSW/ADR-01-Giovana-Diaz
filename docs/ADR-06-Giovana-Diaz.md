@@ -56,3 +56,15 @@ El reporte de trazabilidad se apoya directamente en las tablas de dominio que ya
 
 La identidad Kibbe se modela aparte de `TipoCuerpo` porque el propio sistema Kibbe advierte que confundir forma con identidad es el error más común al aplicarlo — son dos preguntas distintas ("qué silueta tengo" vs. "qué líneas me favorecen"). El eje de Saturación es aditivo para no romper `DetectarEstacion()` ni forzar una migración de datos existentes. El Strategy de combinación cromática resuelve el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05: una regla única que no puede crecer sin volverse un bloque de condicionales.
 
+### Alternativas consideradas
+
+| Alternativa | Por qué la descarté |
+|-------------|---------------------|
+| **Mantener la decisión original (Pilares 1 y 3)** | Se revisó la prioridad de negocio y se determinó que 2, 3 y 4 representan mejor el eje de economía circular del proyecto, aunque cueste más construirlos. |
+| **Modelar el trueque como una extensión de `LoteDonacion` (con un campo "tipo: donación/trueque")** | Mezclaría dos ciclos de vida distintos (uno sin retorno, otro con negociación de dos partes) en una sola entidad, complicando el estado en vez de simplificarlo. |
+| **Reutilizar `PuntoONG` para representar también los negocios de paca del Pilar 2** | Ambos son "ubicaciones externas", pero uno es donatario sin fines de lucro y el otro es un negocio con relación comercial de publicidad; combinarlos obligaría a agregar campos condicionales según el tipo, perdiendo claridad. |
+| **Delegar el matching de "prenda faltante" (Pilar 2) a un servicio externo de anuncios** | No encaja con la arquitectura hexagonal ya construida ni con el control local del negocio (cerrar tratos directos con negocios de Mérida), y añadiría una dependencia externa innecesaria para el alcance académico. |
+| **Reemplazar `TipoCuerpo` directamente por la identidad Kibbe** | Contradice la premisa del propio sistema Kibbe (forma ≠ identidad) y rompería lógica ya construida sobre la forma corporal. |
+| **Implementar de una vez el sistema completo de 12 sub-estaciones (ej. Otoño profundo)** | Implica rehacer las 4 paletas ya construidas y migrar perfiles existentes; se descarta por alcance y tiempo académico. |
+| **Seguir extendiendo `SonCompatibles()` con más condicionales** | Repetiría el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05 para otras capas del sistema. |
+
