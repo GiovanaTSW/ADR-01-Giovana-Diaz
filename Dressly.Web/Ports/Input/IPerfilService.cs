@@ -6,4 +6,5 @@ public interface IPerfilService
 {
     Task<PerfilFisico?> GetPerfilAsync(int usuarioId);
     Task GuardarPerfilAsync(int usuarioId, PerfilFisico perfil);
+    Task<IdentidadKibbeInfo?> ObtenerInfoKibbeAsync(int usuarioId);
 }

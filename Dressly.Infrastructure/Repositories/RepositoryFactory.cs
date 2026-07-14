@@ -45,4 +45,14 @@ public static class RepositoryFactory
         }
         return new DonacionRepository();
     }
+
+    public static INegocioPacaRepository CreateNegocioPacaRepository(string environment, IServiceProvider sp)
+    {
+        if(environment == "Production")
+        {
+            var db = sp.GetRequiredService<SqliteDbContext>();
+            return new SqliteNegocioPacaRepository(db);
+        }
+        return new CsvNegocioPacaRepository();
+    }
 }

@@ -29,4 +29,9 @@ public class PerfilService : IPerfilService
             await _usuarios.UpdateAsync(usuario);
         }
     }
+
+    public Task<IdentidadKibbeInfo?> ObtenerInfoKibbeAsync(int usuarioId)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -13,4 +13,13 @@ public class PerfilFisico
     public decimal? Altura { get; set; }
     public int UsuarioId { get; set; }
     public string? FotoUrl { get; set; }
+
+    public IdentidadKibbeInfo? KibbeInfo { get; set; }
+    public double? Saturacion { get; set; }
 }
+
+public record IdentidadKibbeInfo(
+    string Familia,
+    string LineasFavorecedoras,
+    string PrendasAEvitar
+    );
