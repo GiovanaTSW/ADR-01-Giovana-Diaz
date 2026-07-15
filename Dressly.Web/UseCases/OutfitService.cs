@@ -47,6 +47,26 @@ public class OutfitService : IOutfitService
         var perfil = await _perfil.GetPerfilAsync(usuarioId);
         var colorInfo = _conocimiento.ObtenerInfoColorimetria(perfil?.Colorimetria);
 
+        var coloresPaleta = ConstruirPaletaColores(colorInfo);
+
+        var outfits = await _outfits.GetByUsuarioIdAsync(usuarioId);
+        var idsEnOutfits = outfits.SelectMany(o => o.PrendaIds).ToHashSet();
+
+        var prioridad = ObtenerPrioridadPorOcasion(ocasion);
+
+        var sugerencia = new List<Prenda>();
+        var rng = new Random();
+        foreach (var cat in prioridad)
+        {
+            var prenda = SeleccionarPrendaParaCategoria(cat, disponibles, sugerencia, coloresPaleta, idsEnOutfits, rng);
+            if (prenda != null) sugerencia.Add(prenda);
+        }
+
+        return sugerencia;
+    }
+
+    private static HashSet<string> ConstruirPaletaColores(ColorimetriaInfo? colorInfo)
+    {
         var coloresPaleta = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (colorInfo != null)
         {
@@ -54,11 +74,12 @@ public class OutfitService : IOutfitService
             foreach (var c in colorInfo.ColoresComplementarios) coloresPaleta.Add(c.Key);
             foreach (var c in colorInfo.ColoresNeutros) coloresPaleta.Add(c.Key);
         }
+        return coloresPaleta;
+    }
 
-        var outfits = await _outfits.GetByUsuarioIdAsync(usuarioId);
-        var idsEnOutfits = outfits.SelectMany(o => o.PrendaIds).ToHashSet();
-
-        var prioridad = ocasion?.ToLower() switch
+    private static string[] ObtenerPrioridadPorOcasion(string? ocasion)
+    {
+        return ocasion?.ToLower() switch
         {
             "formal" => new[] { "Superior", "Inferior", "Calzado", "Accesorio" },
             "deportivo" => new[] { "Calzado", "Inferior", "Superior", "Accesorio" },
@@ -67,55 +88,57 @@ public class OutfitService : IOutfitService
             "trabajo" => new[] { "Superior", "Inferior", "Calzado", "Accesorio" },
             _ => new[] { "Superior", "Inferior", "Calzado", "Accesorio" }
         };
+    }
 
-        var sugerencia = new List<Prenda>();
-        var rng = new Random();
-        foreach (var cat in prioridad)
+    private Prenda? SeleccionarPrendaParaCategoria(
+        string categoria,
+        List<Prenda> disponibles,
+        List<Prenda> seleccionadas,
+        HashSet<string> coloresPaleta,
+        HashSet<int> idsEnOutfits,
+        Random rng)
+    {
+        var candidatas = disponibles
+            .Where(p => p.Categoria == categoria)
+            .Select(p => new
+            {
+                Prenda = p,
+                Score = Math.Max(CalcularPuntaje(p, seleccionadas, coloresPaleta)
+                    - (idsEnOutfits.Contains(p.Id) ? 20 : 0), 1)
+            })
+            .ToList();
+
+        if (candidatas.Count == 0) return null;
+
+        List<(Prenda Prenda, int Score)> elegibles;
+        if (seleccionadas.Count > 0)
         {
-            var candidatas = disponibles
-                .Where(p => p.Categoria == cat)
-                .Select(p => new
-                {
-                    Prenda = p,
-                    Score = Math.Max(CalcularPuntaje(p, sugerencia, coloresPaleta)
-                        - (idsEnOutfits.Contains(p.Id) ? 20 : 0), 1)
-                })
+            var ultima = seleccionadas.Last();
+            elegibles = candidatas
+                .Where(x => _colorimetria.SonCompatibles(ultima.Color, x.Prenda.Color))
+                .Select(x => (x.Prenda, x.Score))
                 .ToList();
-
-            if (candidatas.Count == 0) continue;
-
-            List<(Prenda Prenda, int Score)> elegibles;
-            if (sugerencia.Count > 0)
-            {
-                var ultima = sugerencia.Last();
-                elegibles = candidatas
-                    .Where(x => _colorimetria.SonCompatibles(ultima.Color, x.Prenda.Color))
-                    .Select(x => (x.Prenda, x.Score))
-                    .ToList();
-            }
-            else
-            {
-                elegibles = candidatas
-                    .Select(x => (x.Prenda, x.Score))
-                    .ToList();
-            }
-
-            if (elegibles.Count == 0)
-            {
-                elegibles = candidatas
-                    .Select(x => (x.Prenda, x.Score))
-                    .ToList();
-            }
-
-            var topN = elegibles
-                .OrderByDescending(x => x.Score)
-                .Take(3)
+        }
+        else
+        {
+            elegibles = candidatas
+                .Select(x => (x.Prenda, x.Score))
                 .ToList();
-
-            sugerencia.Add(topN[rng.Next(topN.Count)].Prenda);
         }
 
-        return sugerencia;
+        if (elegibles.Count == 0)
+        {
+            elegibles = candidatas
+                .Select(x => (x.Prenda, x.Score))
+                .ToList();
+        }
+
+        var topN = elegibles
+            .OrderByDescending(x => x.Score)
+            .Take(3)
+            .ToList();
+
+        return topN[rng.Next(topN.Count)].Prenda;
     }
 
     private int CalcularPuntaje(Prenda p, List<Prenda> seleccionadas, HashSet<string> coloresPaleta)
