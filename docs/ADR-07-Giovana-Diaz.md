@@ -38,15 +38,51 @@ El nombre, email y password del usuario semilla están escritos como literales e
 *Solución acordada:*  
 Mover las tres credenciales a appsettings.json bajo la sección SeedUser y leerlas por inyección de IConfiguration en AuthService. La contraseña por defecto (123456) sigue siendo un valor por defecto débil, pero al menos ahora es configurable sin recompilar.
 
+## Deuda #2: Long method en OutfitService
+
+*Archivo:* Dressly.Web/UseCases/OutfitService.cs  
+*Método:* GenerarSugerenciaAsync (~70 líneas)
+
+El método GenerarSugerenciaAsync mezcla tres responsabilidades distintas en un solo bloque:
+1. Construcción de la paleta de colores a partir del perfil del usuario.
+2. Determinación del orden de prioridad de categorías según la ocasión.
+3. Selección probabilística de prendas dentro de cada categoría, con puntuación y filtro de compatibilidad cromática.
+
+*Solución acordada:*  
+Extraer tres métodos privados sin cambiar la lógica de negocio: ConstruirPaletaColores, ObtenerPrioridadPorOcasion y SeleccionarPrendaParaCategoria. El método original queda como un orchestrator que delega en estos tres.
 
 ---
 
 ### ¿Por qué?
 
-Modelar cada pilar como una entidad y un puerto propios — en vez de forzarlos dentro de entidades existentes — mantiene el principio ya establecido en ADR-03/ADR-05: el dominio crece por adición, no por modificación de lo que ya funciona. `NegocioPaca` no reutiliza `PuntoONG` porque, aunque ambos son "lugares externos", responden a relaciones de negocio distintas (publicidad pagada vs. donación altruista). Igual, `Intercambio` no se modela como una extensión de `LoteDonacion` porque el trueque tiene un ciclo de vida transaccional (propuesta → aceptación) que la donación no tiene — mezclarlos habría forzado un estado y una semántica que no le corresponden a `LoteDonacion`.
+Se ha decidido priorizar la seguridad en el ciclo de vida del desarrollo (DevSecOps). La práctica de incluir credenciales en el código fuente viola el principio de separación de configuración y código. Esta decisión permite que el equipo de desarrollo mantenga la flexibilidad de cambiar entornos sin comprometer la integridad del repositorio, evitando la exposición accidental de secretos en sistemas de control de versiones.
 
-El reporte de trazabilidad se apoya directamente en las tablas de dominio que ya existen (`PuntoONG`, `LoteDonacion`), por lo que es la pieza más barata de las tres — solo agrega una capa de consulta/agregación, no un nuevo flujo transaccional.
-
-La identidad Kibbe se modela aparte de `TipoCuerpo` porque el propio sistema Kibbe advierte que confundir forma con identidad es el error más común al aplicarlo — son dos preguntas distintas ("qué silueta tengo" vs. "qué líneas me favorecen"). El eje de Saturación es aditivo para no romper `DetectarEstacion()` ni forzar una migración de datos existentes. El Strategy de combinación cromática resuelve el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05: una regla única que no puede crecer sin volverse un bloque de condicionales.
+El objetivo es reducir la complejidad cognitiva y facilitar la testabilidad. Al aplicar el principio de responsabilidad única (SRP), garantizamos que cada nuevo requerimiento de estilo en Dressly pueda ser implementado como un método independiente. Esta decisión reduce drásticamente el costo de mantenimiento, ya que permite realizar pruebas unitarias aisladas para cada componente de la lógica, minimizando el riesgo de regresiones cuando el algoritmo de recomendación evolucione.
 
 ### Alternativas consideradas
+
+| Alternativa | Por qué la descarté |
+|-------------|---------------------|
+| **Leer credenciales desde variables de entorno del SO** | Aunque es segura, complica la configuración local para nuevos desarrolladores y es menos intuitiva que el sistema de proveedores de configuración de .NET (`appsettings.json`). |
+| **Uso de servicios externos (Azure/AWS Secrets Manager)** | Es una sobreingeniería excesiva para el alcance académico actual; se reserva como mejora para una etapa de despliegue en producción. |
+| **Implementar el patrón Strategy para `GenerarSugerenciaAsync`** | Introduciría una complejidad estructural innecesaria en este momento; el uso de `Extract Method` resuelve el problema de legibilidad sin alterar la arquitectura. |
+| **Mantener el método `GenerarSugerenciaAsync` como está** | El costo de mantenimiento y el riesgo de errores en la lógica de estilo superan el esfuerzo de realizar la refactorización ahora. |
+
+---
+
+## Consecuencias
+
+**✅ Lo que gano:**
+
+- **Técnica:** Al externalizar la configuración, el código queda limpio de secretos y preparado para diferentes entornos. Con la refactorización del *Long Method*, se logra cumplir con el principio de responsabilidad única (SRP), mejorando drásticamente la mantenibilidad y permitiendo pruebas unitarias aisladas para cada sub-proceso de sugerencia.
+- **Proceso:** La separación de responsabilidades permite desarrollar y probar la lógica de estilo de forma independiente, facilitando un flujo de trabajo más ordenado donde cada método tiene un propósito claro.
+
+**⚠️ Lo que sacrifico o asumo:**
+
+- **Limitación técnica:** Al mover las credenciales a `appsettings.json`, el desarrollador debe asegurar que dicho archivo se agregue correctamente al `.gitignore` para no subir secretos al repositorio, lo cual es una responsabilidad adicional de configuración del entorno local.
+- **Deuda o riesgo:** La refactorización del `OutfitService` implica una manipulación directa de la lógica de negocio central; existe un riesgo menor de introducir regresiones si no se cuenta con una cobertura de pruebas unitarias robusta antes de mover el código. Además, al tratarse de un sistema de recomendación, cualquier cambio pequeño en los métodos extraídos podría alterar sutilmente el resultado de las sugerencias, lo cual debe validarse.
+
+---
+
+## Cláusula de IA
+En este documento se ha utilizado IA para la estructuración del ADR según el formato oficial del curso, la redacción técnica y la claridad en las propuestas de solución. Todas las identificaciones de deuda y decisiones de diseño son propias de la autora.
