@@ -16,6 +16,9 @@ public class SqliteDbContext : DbContext
     public DbSet<PuntoONG> PuntosONG => Set<PuntoONG>();
     public DbSet<IdentidadKibbeInfo> IdentidadesKibbe => Set<IdentidadKibbeInfo>();
     public DbSet<NegocioPaca> NegociosPaca => Set<NegocioPaca>();
+    public DbSet<Empresa> Empresas => Set<Empresa>();
+    public DbSet<Patrocinio> Patrocinios => Set<Patrocinio>();
+    public DbSet<Intercambio> Intercambios => Set<Intercambio>();
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
@@ -118,6 +121,31 @@ public class SqliteDbContext : DbContext
             entity.Property(n => n.CategoriaPrenda).HasMaxLength(50);
             entity.Property(n => n.Coordenadas).HasMaxLength(100);
             entity.Property(n => n.Telefono).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Empresa>(entity =>
+        {
+            entity.ToTable("Empresas");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RazonSocial).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.RFC).IsRequired().HasMaxLength(13);
+            entity.Property(e => e.Telefono).HasMaxLength(50);
+            entity.Property(e => e.Direccion).HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<Patrocinio>(entity =>
+        {
+            entity.ToTable("Patrocinios");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Monto).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<Intercambio>(entity =>
+        {
+            entity.ToTable("Intercambios");
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Estado).HasMaxLength(20).HasConversion<string>();
+            entity.Property(i => i.Comision).HasColumnType("decimal(18,2)");
         });
     }
 }

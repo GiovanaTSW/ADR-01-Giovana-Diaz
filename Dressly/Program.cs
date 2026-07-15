@@ -63,6 +63,9 @@ builder.Services.AddScoped<INegocioPacaRepository>(sp =>
 });
 
 builder.Services.AddScoped<IIdentidadKibbeRepository, SqliteIdentidadKibbeRepository>();
+builder.Services.AddScoped<IEmpresaRepository, SqliteEmpresaRepository>();
+builder.Services.AddScoped<IPatrocinioRepository, SqlitePatrocinioRepository>();
+builder.Services.AddScoped<IIntercambioRepository, SqliteIntercambioRepository>();
 
 // ── 3. Autenticación ──────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -120,6 +123,8 @@ builder.Services.AddScoped<IDonacionService>(sp =>
 });
 
 builder.Services.AddScoped<IPerfilService, PerfilService>();
+builder.Services.AddScoped<IPatrocinioService, PatrocinioService>();
+builder.Services.AddScoped<IIntercambioService, IntercambioService>();
 
 builder.Services.AddControllersWithViews();
 

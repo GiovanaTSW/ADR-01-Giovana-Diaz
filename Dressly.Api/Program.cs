@@ -59,6 +59,13 @@ builder.Services.AddScoped<IDonacionRepository>(sp =>
 builder.Services.AddScoped<IIdentidadKibbeRepository>(sp =>
     RepositoryFactory.CreateIdentidadKibbeRepository(env, sp));
 
+builder.Services.AddScoped<INegocioPacaRepository>(sp =>
+    RepositoryFactory.CreateNegocioPacaRepository(env, sp));
+
+builder.Services.AddScoped<IEmpresaRepository, SqliteEmpresaRepository>();
+builder.Services.AddScoped<IPatrocinioRepository, SqlitePatrocinioRepository>();
+builder.Services.AddScoped<IIntercambioRepository, SqliteIntercambioRepository>();
+
 // ── 3. Infrastructure Services ────────────────────────────────────────────────
 builder.Services.AddSingleton<IAlmacenamientoImagenes, FileSystemFotoService>();
 
@@ -105,6 +112,9 @@ builder.Services.AddScoped<IDonacionService>(sp =>
     service.SubscribeDonacionRegistrada(new ConsoleNotifier<DonacionRegistradaEvent>(logger));
     return service;
 });
+
+builder.Services.AddScoped<IPatrocinioService, PatrocinioService>();
+builder.Services.AddScoped<IIntercambioService, IntercambioService>();
 
 // ── 6. CORS ───────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
