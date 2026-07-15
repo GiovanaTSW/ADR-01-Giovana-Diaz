@@ -3,6 +3,7 @@ using System.Text;
 using Dressly.Domain.Entities;
 using Dressly.Application.Ports.Input;
 using Dressly.Application.Ports.Output;
+using Microsoft.Extensions.Configuration;
 
 namespace Dressly.Application.UseCases;
 
@@ -10,11 +11,13 @@ public class AuthService : IAuthService
 {
     private readonly IUsuarioRepository _usuarios;
     private readonly ISeedService _seed;
+    private readonly IConfiguration _config;
 
-    public AuthService(IUsuarioRepository usuarios, ISeedService seed)
+    public AuthService(IUsuarioRepository usuarios, ISeedService seed, IConfiguration config)
     {
         _usuarios = usuarios;
         _seed = seed;
+        _config = config;
     }
 
     public async Task<(bool Exitoso, Usuario? Usuario)> LoginAsync(string email, string password)
@@ -48,15 +51,19 @@ public class AuthService : IAuthService
 
     public async Task SeedDefaultUserAsync()
     {
-        var existente = await _usuarios.GetByEmailAsync("giovana@dressly.com");
+        var nombre = _config["SeedUser:Nombre"] ?? "Giovana Díaz";
+        var email = _config["SeedUser:Email"] ?? "giovana@dressly.com";
+        var password = _config["SeedUser:Password"] ?? "123456";
+
+        var existente = await _usuarios.GetByEmailAsync(email);
         if (existente != null) return;
 
         var usuario = new Usuario
         {
             Id = await _usuarios.GetNextIdAsync(),
-            Nombre = "Giovana Díaz",
-            Email = "giovana@dressly.com",
-            PasswordHash = HashPassword("123456")
+            Nombre = nombre,
+            Email = email,
+            PasswordHash = HashPassword(password)
         };
 
         await _usuarios.AddAsync(usuario);
