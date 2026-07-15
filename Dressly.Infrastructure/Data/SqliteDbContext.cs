@@ -15,6 +15,7 @@ public class SqliteDbContext : DbContext
     public DbSet<LoteDonacion> LotesDonacion => Set<LoteDonacion>();
     public DbSet<PuntoONG> PuntosONG => Set<PuntoONG>();
     public DbSet<IdentidadKibbeInfo> IdentidadesKibbe => Set<IdentidadKibbeInfo>();
+    public DbSet<NegocioPaca> NegociosPaca => Set<NegocioPaca>();
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
@@ -106,6 +107,17 @@ public class SqliteDbContext : DbContext
             entity.Property(p => p.Nombre).IsRequired().HasMaxLength(200);
             entity.Property(p => p.Direccion).HasMaxLength(300);
             entity.Property(p => p.Telefono).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<NegocioPaca>(entity =>
+        {
+            entity.ToTable("NegociosPaca");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Nombre).IsRequired().HasMaxLength(200);
+            entity.Property(n => n.Direccion).HasMaxLength(300);
+            entity.Property(n => n.CategoriaPrenda).HasMaxLength(50);
+            entity.Property(n => n.Coordenadas).HasMaxLength(100);
+            entity.Property(n => n.Telefono).HasMaxLength(50);
         });
     }
 }

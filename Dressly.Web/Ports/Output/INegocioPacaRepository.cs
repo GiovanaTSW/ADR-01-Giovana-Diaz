@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Dressly.Domain.Entities;
+﻿using Dressly.Domain.Entities;
 
-namespace Dressly.Infrastructure.Repositories
+namespace Dressly.Application.Ports.Output;
+
+public interface INegocioPacaRepository
 {
-    public interface INegocioPacaRepository {
-        public Task<NegocioPaca?> GetByIdAsc(int id) => Task.FromResult<NegocioPaca?>(null);
-
-        public Task<IEnumerable<NegocioPaca>> GetAllAsync() => Task.FromResult<IEnumerable<NegocioPaca>>([]);
-
-        public Task<IEnumerable<NegocioPaca>> GetCercanosACategoriaAsync(string categoria, string coordenadasUsuario) => Task.FromResult<IEnumerable<NegocioPaca>>([]);
-    }
+    Task<NegocioPaca?> GetByIdAsync(int id);
+    Task<IEnumerable<NegocioPaca>> GetAllAsync();
+    Task<IEnumerable<NegocioPaca>> GetCercanosACategoriaAsync(string categoria, string coordenadasUsuario);
+    Task AddAsync(NegocioPaca negocio);
 }
