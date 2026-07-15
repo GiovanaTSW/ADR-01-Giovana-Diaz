@@ -16,9 +16,9 @@
 {
     <div class="empty-state">
         <div class="empty-icon"><i class="bi bi-person-circle"></i></div>
-        <h5 class="text-graphite">Aun no has configurado tu perfil fisico</h5>
+        <h5 class="text-graphite">Aún no has configurado tu perfil físico</h5>
         <p class="small text-slate mb-3">
-            Configura tu tipo de cuerpo, colorimetria y contraste personal para recibir sugerencias personalizadas.
+            Configura tu identidad Kibbe, colorimetría y contraste personal para recibir sugerencias personalizadas.
         </p>
         <a asp-action="Editar" class="btn btn-blush mt-2 btn-pill">
             <i class="bi bi-pencil-square me-1"></i> Configurar mi perfil
@@ -36,8 +36,7 @@ else
                     <div class="avatar-glow">
                         @if (!string.IsNullOrEmpty(perfil.FotoUrl))
                         {
-                            <img src="@perfil.FotoUrl" alt="Foto de perfil"
-                                 style="width:72px;height:72px;" />
+                            <img src="@perfil.FotoUrl" alt="Foto de perfil" style="width:72px;height:72px;border-radius:50%;" />
                         }
                         else
                         {
@@ -47,79 +46,60 @@ else
                         }
                     </div>
                     <div>
-                        <div class="fw-semibold" style="font-family:var(--font-display); font-size:1.1rem;">@perfil.TipoCuerpo</div>
+                        <div class="fw-semibold" style="font-family:var(--font-display); font-size:1.1rem;">
+                            @(perfil.KibbeInfo?.Nombre ?? "Sin identidad Kibbe")
+                        </div>
                         <div class="small" style="color:var(--slate);">
                             @perfil.Colorimetria &middot; Contraste @perfil.Contraste &middot; @perfil.SubtonoPiel
                         </div>
                     </div>
                     <div class="ms-auto text-end">
                         <div class="small" style="color:var(--slate);">@(perfil.Altura?.ToString("F2") ?? "--") m</div>
-                        <div class="small" style="color:var(--slate);">@perfil.IntensidadCabello &middot; @perfil.ColorOjos</div>
+                        <div class="small fw-bold" style="color:var(--blush);">@(perfil.KibbeInfo?.TipoEnergia ?? "Energía no definida")</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tipo de cuerpo -->
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header">
-                    Tipo de cuerpo: @perfil.TipoCuerpo
+        <!-- Identidad Kibbe -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <h5 class="mb-0 text-blush fw-bold"><i class="bi bi-stars"></i> Identidad Kibbe: @(perfil.KibbeInfo?.Nombre ?? "No configurada")</h5>
                 </div>
                 <div class="card-body">
-                    @if (Model.TipoCuerpoInfo != null)
+                    @if (perfil.KibbeInfo != null)
                     {
-                        <p class="mb-3" style="color:var(--charcoal); font-size:0.875rem;">
-                            @Model.TipoCuerpoInfo.Descripcion
-                        </p>
-
-                        <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
-                            CARACTERISTICAS
-                        </h6>
-                        <ul class="mb-3 ps-3" style="font-size:0.8125rem;">
-                            @foreach (var c in Model.TipoCuerpoInfo.Caracteristicas)
-                            {
-                                <li class="mb-1" style="color:var(--slate);">@c</li>
-                            }
-                        </ul>
-
-                        <h6 class="fw-semibold mb-2" style="color:var(--success); font-size:0.8125rem; letter-spacing:0.03em;">
-                            PRENDAS RECOMENDADAS
-                        </h6>
-                        <ul class="mb-3 ps-3" style="font-size:0.8125rem;">
-                            @foreach (var r in Model.TipoCuerpoInfo.PrendasRecomendadas)
-                            {
-                                <li class="mb-1" style="color:var(--success);">@r</li>
-                            }
-                        </ul>
-
-                        <h6 class="fw-semibold mb-2" style="color:var(--danger); font-size:0.8125rem; letter-spacing:0.03em;">
-                            PRENDAS A EVITAR
-                        </h6>
-                        <ul class="mb-0 ps-3" style="font-size:0.8125rem;">
-                            @foreach (var e in Model.TipoCuerpoInfo.PrendasEvitar)
-                            {
-                                <li class="mb-1" style="color:var(--danger);">@e</li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="small" style="color:var(--mist);">Selecciona tu tipo de cuerpo en la edicion de perfil.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="text-muted small"><strong>Energía:</strong> @perfil.KibbeInfo.TipoEnergia</p>
+                                <p>@perfil.KibbeInfo.DescripcionFisica</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success small fw-bold">LÍNEAS RECOMENDADAS</h6>
+                                <p class="small">@perfil.KibbeInfo.LineasRecomendadas</p>
+                                <h6 class="text-danger small fw-bold">A EVITAR</h6>
+                                <p class="small">@perfil.KibbeInfo.Evitar</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <h6 class="small fw-bold">Telas sugeridas:</h6>
+                            <p class="mb-0 small">@perfil.KibbeInfo.TelasSugeridas</p>
+                        </div>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Colorimetria -->
+        <!-- Colorimetría -->
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Colorimetria: @perfil.Colorimetria</span>
+                    <span>Colorimetría: @perfil.Colorimetria</span>
                     @if (Model.ColorimetriaInfo != null)
                     {
                         <span class="badge bg-orchid">
-                            @(Model.ColorimetriaInfo.ColoresPrincipales.Count + Model.ColorimetriaInfo.ColoresComplementarios.Count + Model.ColorimetriaInfo.ColoresNeutros.Count) colores
+                            @((Model.ColorimetriaInfo.ColoresPrincipales.Count + Model.ColorimetriaInfo.ColoresComplementarios.Count + Model.ColorimetriaInfo.ColoresNeutros.Count)) colores
                         </span>
                     }
                 </div>
@@ -137,7 +117,7 @@ else
                         </div>
 
                         <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
-                            COMO IDENTIFICARLO
+                            CÓMO IDENTIFICARLO
                         </h6>
                         <ul class="mb-3 ps-3" style="font-size:0.8125rem;">
                             @foreach (var c in Model.ColorimetriaInfo.Caracteristicas)
@@ -149,7 +129,7 @@ else
                         <div class="border-start ps-3 mb-3"
                              style="border-color:var(--orchid); background-color:var(--orchid-pale); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:12px;">
                             <h6 class="fw-semibold mb-1" style="color:var(--carbon); font-size:0.75rem; letter-spacing:0.03em;">
-                                POR QUE ESTOS COLORES
+                                POR QUÉ ESTOS COLORES
                             </h6>
                             <p class="mb-0" style="font-size:0.8125rem; color:var(--charcoal);">
                                 @Model.ColorimetriaInfo.Explicacion
@@ -197,58 +177,49 @@ else
                     }
                     else
                     {
-                        <p class="small" style="color:var(--mist);">Selecciona tu colorimetria en la edicion de perfil.</p>
+                        <p class="small" style="color:var(--mist);">Selecciona tu colorimetría en la edición de perfil.</p>
                     }
                 </div>
             </div>
         </div>
 
         <!-- Contraste -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">
-                    Contraste personal: @perfil.Contraste
-                </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header">Contraste personal: @perfil.Contraste</div>
                 <div class="card-body">
                     @if (Model.ContrasteInfo != null)
                     {
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <p class="mb-0" style="font-size:0.875rem; color:var(--charcoal);">
-                                    @Model.ContrasteInfo.Descripcion
-                                </p>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="border-start ps-3 h-100"
-                                     style="border-color:var(--orchid);">
-                                    <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
-                                        EXPLICACION
-                                    </h6>
-                                    <p class="mb-0" style="font-size:0.8125rem; color:var(--slate);">
-                                        @Model.ContrasteInfo.Explicacion
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="fw-semibold mb-2" style="color:var(--success); font-size:0.8125rem; letter-spacing:0.03em;">
-                                    RECOMENDACIONES
-                                </h6>
-                                <ul class="mb-0 ps-3" style="font-size:0.8125rem;">
-                                    @foreach (var r in Model.ContrasteInfo.Recomendaciones)
-                                    {
-                                        <li class="mb-1" style="color:var(--success);">@r</li>
-                                    }
-                                </ul>
-                            </div>
+                        <p class="mb-3" style="font-size:0.875rem; color:var(--charcoal);">
+                            @Model.ContrasteInfo.Descripcion
+                        </p>
+
+                        <div class="border-start ps-3 mb-3"
+                             style="border-color:var(--orchid);">
+                            <h6 class="fw-semibold mb-2" style="color:var(--carbon); font-size:0.8125rem; letter-spacing:0.03em;">
+                                EXPLICACIÓN
+                            </h6>
+                            <p class="mb-0" style="font-size:0.8125rem; color:var(--slate);">
+                                @Model.ContrasteInfo.Explicacion
+                            </p>
                         </div>
+
+                        <h6 class="fw-semibold mb-2" style="color:var(--success); font-size:0.8125rem; letter-spacing:0.03em;">
+                            RECOMENDACIONES
+                        </h6>
+                        <ul class="mb-0 ps-3" style="font-size:0.8125rem;">
+                            @foreach (var r in Model.ContrasteInfo.Recomendaciones)
+                            {
+                                <li class="mb-1" style="color:var(--success);">@r</li>
+                            }
+                        </ul>
                     }
                     else
                     {
-                        <p class="small" style="color:var(--mist);">Selecciona tu nivel de contraste en la edicion de perfil.</p>
+                        <p class="small" style="color:var(--mist);">Selecciona tu nivel de contraste en la edición de perfil.</p>
                     }
                 </div>
             </div>
         </div>
-
     </div>
 }

@@ -18,7 +18,10 @@ public class SqliteUsuarioRepository : IUsuarioRepository
         => await _db.Usuarios.AsNoTracking().ToListAsync();
 
     public async Task<Usuario?> GetByIdAsync(int id)
-        => await _db.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+        => await _db.Usuarios
+        .Include(u => u.Perfil)
+            .ThenInclude(p => p.KibbeInfo)
+        .FirstOrDefaultAsync(u => u.Id == id);
 
     public async Task<Usuario?> GetByEmailAsync(string email)
         => await _db.Usuarios.FirstOrDefaultAsync(u => u.Email == email);

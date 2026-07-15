@@ -28,33 +28,36 @@ var sqlitePath = builder.Configuration.GetConnectionString("Sqlite") ?? "Data So
 builder.Services.AddDbContext<SqliteDbContext>(options =>
     options.UseSqlite(sqlitePath));
 
-builder.Services.AddSingleton<IPrendaRepository>(sp =>
+builder.Services.AddScoped<IPrendaRepository>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<LoggingPrendaRepository>>();
     var realRepo = RepositoryFactory.CreatePrendaRepository(env, sp);
     return new LoggingPrendaRepository(realRepo, logger);
 });
 
-builder.Services.AddSingleton<IUsuarioRepository>(sp =>
+builder.Services.AddScoped<IUsuarioRepository>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<LoggingUsuarioRepository>>();
     var realRepo = RepositoryFactory.CreateUsuarioRepository(env, sp);
     return new LoggingUsuarioRepository(realRepo, logger);
 });
 
-builder.Services.AddSingleton<IOutfitRepository>(sp =>
+builder.Services.AddScoped<IOutfitRepository>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<LoggingOutfitRepository>>();
     var realRepo = RepositoryFactory.CreateOutfitRepository(env, sp);
     return new LoggingOutfitRepository(realRepo, logger);
 });
 
-builder.Services.AddSingleton<IDonacionRepository>(sp =>
+builder.Services.AddScoped<IDonacionRepository>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<LoggingDonacionRepository>>();
     var realRepo = RepositoryFactory.CreateDonacionRepository(env, sp);
     return new LoggingDonacionRepository(realRepo, logger);
 });
+
+builder.Services.AddScoped<IIdentidadKibbeRepository>(sp =>
+    RepositoryFactory.CreateIdentidadKibbeRepository(env, sp));
 
 // ── 3. Infrastructure Services ────────────────────────────────────────────────
 builder.Services.AddSingleton<IAlmacenamientoImagenes, FileSystemFotoService>();

@@ -31,15 +31,18 @@ public class PerfilController : Controller
     {
         var perfil = await _perfil.GetPerfilAsync(UsuarioId);
 
-        if (perfil == null || string.IsNullOrEmpty(perfil.TipoCuerpo))
+        if (perfil == null || perfil.KibbeInfoId is null or 0)
+        {
             return RedirectToAction(nameof(Editar));
+        }
 
         var vm = new PerfilViewModel
         {
             Perfil = perfil,
-            TipoCuerpoInfo = _conocimiento.ObtenerInfoTipoCuerpo(perfil?.TipoCuerpo),
-            ColorimetriaInfo = _conocimiento.ObtenerInfoColorimetria(perfil?.Colorimetria),
-            ContrasteInfo = _conocimiento.ObtenerInfoContraste(perfil?.Contraste)
+            KibbeInfo = perfil.KibbeInfo,
+            TipoCuerpoInfo = _conocimiento.ObtenerInfoTipoCuerpo(perfil.TipoCuerpo),
+            ColorimetriaInfo = _conocimiento.ObtenerInfoColorimetria(perfil.Colorimetria),
+            ContrasteInfo = _conocimiento.ObtenerInfoContraste(perfil.Contraste)
         };
 
         return View(vm);
@@ -62,36 +65,55 @@ public class PerfilController : Controller
             return View(perfil);
         }
 
-        if (string.IsNullOrEmpty(perfil.Colorimetria))
+        try
         {
-            var detectada = _conocimiento.DetectarEstacion(
-                perfil.SubtonoPiel, perfil.IntensidadCabello, perfil.ColorOjos);
-            if (!string.IsNullOrEmpty(detectada))
-                perfil.Colorimetria = detectada;
+            var existente = await _perfil.GetPerfilAsync(UsuarioId);
+            perfil.UsuarioId = UsuarioId;
+            perfil.Id = existente?.Id ?? 0;
+
+            if (existente != null)
+            {
+                perfil.Saturacion = existente.Saturacion;
+                perfil.TipoCuerpo = existente.TipoCuerpo;
+                if (perfil.KibbeInfoId is null or 0)
+                    perfil.KibbeInfoId = existente.KibbeInfoId;
+            }
+
+            // Lógica de foto
+            if (foto != null && foto.Length > 0)
+            {
+                if (existente?.FotoUrl != null)
+                    await _fotos.EliminarAsync(existente.FotoUrl);
+
+                using var ms = new MemoryStream();
+                await foto.CopyToAsync(ms);
+                perfil.FotoUrl = await _fotos.GuardarAsync(ms.ToArray(), foto.FileName);
+            }
+            else
+            {
+                perfil.FotoUrl = existente?.FotoUrl;
+            }
+
+            // Lógica de detección si falta colorimetría
+            if (string.IsNullOrEmpty(perfil.Colorimetria))
+            {
+                var detectada = _conocimiento.DetectarEstacion(
+                    perfil.SubtonoPiel, perfil.IntensidadCabello, perfil.ColorOjos);
+                if (!string.IsNullOrEmpty(detectada))
+                {
+                    perfil.Colorimetria = detectada;
+                    ViewBag.EstacionDetectada = detectada;
+                }
+            }
+
+            await _perfil.GuardarPerfilAsync(UsuarioId, perfil);
+            return RedirectToAction(nameof(Index));
         }
-
-        var existente = await _perfil.GetPerfilAsync(UsuarioId);
-
-        if (foto != null && foto.Length > 0)
+        catch (Exception)
         {
-            if (existente?.FotoUrl != null)
-                await _fotos.EliminarAsync(existente.FotoUrl);
-
-            using var ms = new MemoryStream();
-            await foto.CopyToAsync(ms);
-            perfil.FotoUrl = await _fotos.GuardarAsync(ms.ToArray(), foto.FileName);
+            ModelState.AddModelError("", "Ocurrió un error al guardar los cambios.");
+            return View(perfil);
         }
-        else
-        {
-            perfil.FotoUrl = existente?.FotoUrl;
-        }
-
-        perfil.UsuarioId = UsuarioId;
-        perfil.Id = existente?.Id ?? UsuarioId;
-
-        ModelState.Clear();
-        await _perfil.GuardarPerfilAsync(UsuarioId, perfil);
-        return RedirectToAction(nameof(Index));
     }
 
     private void DetectarYAsignarEstacion(PerfilFisico perfil)

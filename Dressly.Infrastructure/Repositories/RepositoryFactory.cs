@@ -37,4 +37,10 @@ public static class RepositoryFactory
         var db = sp.GetRequiredService<SqliteDbContext>();
         return new SqliteNegocioPacaRepository(db);
     }
+
+    public static IIdentidadKibbeRepository CreateIdentidadKibbeRepository(string environment, IServiceProvider sp)
+    {
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqliteIdentidadKibbeRepository(db);
+    }
 }

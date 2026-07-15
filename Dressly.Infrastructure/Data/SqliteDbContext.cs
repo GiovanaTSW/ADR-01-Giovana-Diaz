@@ -44,6 +44,14 @@ public class SqliteDbContext : DbContext
                 perfil.Property(p => p.ColorOjos).HasMaxLength(50);
                 perfil.Property(p => p.Colorimetria).HasMaxLength(50);
                 perfil.Property(p => p.Contraste).HasMaxLength(50);
+                perfil.Property(p => p.KibbeInfoId);
+                perfil.Property(p => p.Altura);
+                perfil.Property(p => p.FotoUrl).HasMaxLength(500);
+                perfil.Property(p => p.Saturacion);
+
+                perfil.HasOne(p => p.KibbeInfo)
+                      .WithMany()
+                      .HasForeignKey(p => p.KibbeInfoId);
             });
 
             entity.HasMany(u => u.Prendas)

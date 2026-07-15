@@ -8,4 +8,5 @@ public class PerfilViewModel
     public TipoCuerpoInfo? TipoCuerpoInfo { get; set; }
     public ColorimetriaInfo? ColorimetriaInfo { get; set; }
     public ContrasteInfo? ContrasteInfo { get; set; }
+    public IdentidadKibbeInfo? KibbeInfo { get; set; }
 }

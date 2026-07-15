@@ -83,7 +83,6 @@ builder.Services.AddScoped<IPerfilConocimientoService, PerfilConocimientoService
 // ── 6. Use Cases ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISeedService, SeedService>();
-builder.Services.AddScoped<IPerfilService, PerfilService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 builder.Services.AddScoped<IPrendaService>(sp =>
@@ -119,6 +118,8 @@ builder.Services.AddScoped<IDonacionService>(sp =>
     service.SubscribeDonacionRegistrada(new ConsoleNotifier<DonacionRegistradaEvent>(logger));
     return service;
 });
+
+builder.Services.AddScoped<IPerfilService, PerfilService>();
 
 builder.Services.AddControllersWithViews();
 
