@@ -1,3 +1,4 @@
+using System;
 using Dressly.Application.Ports.Output;
 using Dressly.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,51 +9,32 @@ public static class RepositoryFactory
 {
     public static IPrendaRepository CreatePrendaRepository(string environment, IServiceProvider sp)
     {
-        if (environment == "Production")
-        {
-            var db = sp.GetRequiredService<SqliteDbContext>();
-            return new SqlitePrendaRepository(db);
-        }
-        return new PrendaRepository();
+        // Eliminamos el 'if' del entorno, ahora siempre resolvemos con SQLite
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqlitePrendaRepository(db);
     }
 
     public static IUsuarioRepository CreateUsuarioRepository(string environment, IServiceProvider sp)
     {
-        if (environment == "Production")
-        {
-            var db = sp.GetRequiredService<SqliteDbContext>();
-            return new SqliteUsuarioRepository(db);
-        }
-        return new UsuarioRepository();
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqliteUsuarioRepository(db);
     }
 
     public static IOutfitRepository CreateOutfitRepository(string environment, IServiceProvider sp)
     {
-        if (environment == "Production")
-        {
-            var db = sp.GetRequiredService<SqliteDbContext>();
-            return new SqliteOutfitRepository(db);
-        }
-        return new OutfitRepository();
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqliteOutfitRepository(db);
     }
 
     public static IDonacionRepository CreateDonacionRepository(string environment, IServiceProvider sp)
     {
-        if (environment == "Production")
-        {
-            var db = sp.GetRequiredService<SqliteDbContext>();
-            return new SqliteDonacionRepository(db);
-        }
-        return new DonacionRepository();
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqliteDonacionRepository(db);
     }
 
     public static INegocioPacaRepository CreateNegocioPacaRepository(string environment, IServiceProvider sp)
     {
-        if(environment == "Production")
-        {
-            var db = sp.GetRequiredService<SqliteDbContext>();
-            return new SqliteNegocioPacaRepository(db);
-        }
-        return new CsvNegocioPacaRepository();
+        var db = sp.GetRequiredService<SqliteDbContext>();
+        return new SqliteNegocioPacaRepository(db);
     }
 }

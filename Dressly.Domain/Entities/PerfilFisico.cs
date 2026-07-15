@@ -17,9 +17,3 @@ public class PerfilFisico
     public IdentidadKibbeInfo? KibbeInfo { get; set; }
     public double? Saturacion { get; set; }
 }
-
-public record IdentidadKibbeInfo(
-    string Familia,
-    string LineasFavorecedoras,
-    string PrendasAEvitar
-    );

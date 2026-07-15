@@ -14,6 +14,7 @@ public class SqliteDbContext : DbContext
     public DbSet<Outfit> Outfits => Set<Outfit>();
     public DbSet<LoteDonacion> LotesDonacion => Set<LoteDonacion>();
     public DbSet<PuntoONG> PuntosONG => Set<PuntoONG>();
+    public DbSet<IdentidadKibbeInfo> IdentidadesKibbe => Set<IdentidadKibbeInfo>();
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
