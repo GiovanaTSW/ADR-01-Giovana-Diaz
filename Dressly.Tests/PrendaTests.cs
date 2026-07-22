@@ -12,7 +12,7 @@ namespace Dressly.Tests
             var prenda = new Prenda();
 
             // Act & Assert
-            Assert.NotNull(prenda);
+            Assert.Null(prenda);
         }
     }
 }
