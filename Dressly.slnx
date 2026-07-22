@@ -2,6 +2,7 @@
   <Project Path="Dressly.Api/Dressly.Api.csproj" Id="3426ec41-8934-4973-a9e2-e53aa361629e" />
   <Project Path="Dressly.Domain/Dressly.Domain.csproj" Id="fcc6e692-7020-4830-b8fe-55fb9016c47b" />
   <Project Path="Dressly.Infrastructure/Dressly.Infrastructure.csproj" Id="802a6696-1873-4eef-b380-2f424f107349" />
+  <Project Path="Dressly.Tests/Dressly.Tests.csproj" Id="f48c1d8b-0e91-4d6a-b2ed-01d50d611785" />
   <Project Path="Dressly.Web/Dressly.Application.csproj" Id="8089e9c4-dcf2-4992-8c1b-696b6529e100" />
   <Project Path="Dressly/Dressly.Web.csproj" Id="c5b2a1d0-3e4f-5a6b-7c8d-9e0f1a2b3c4d" />
 </Solution>
