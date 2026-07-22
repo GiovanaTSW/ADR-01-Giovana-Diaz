@@ -15,6 +15,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Dressly.Api\Dressly.Api.csproj" />
+    <ProjectReference Include="..\Dressly.Domain\Dressly.Domain.csproj" />
+    <ProjectReference Include="..\Dressly.Infrastructure\Dressly.Infrastructure.csproj" />
+    <ProjectReference Include="..\Dressly.Web\Dressly.Application.csproj" />
+    <ProjectReference Include="..\Dressly\Dressly.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
