@@ -9,7 +9,7 @@
 |--------|-------|
 | Autor  | Giovana Ruby Díaz Anduze |
 | Fecha  | 08/07/2026 |
-| Estado | `Propuesto` |
+| Estado | `Propuesto / Implementado` |
 
 ---
 
@@ -47,6 +47,8 @@ Se incorporan tres dominios nuevos al hexágono existente, cada uno resolviendo 
 
 **Strategy de combinación cromática:** nueva interfaz `IEstrategiaCombinacionColor` con implementaciones `EstrategiaMonocromatica`, `EstrategiaAnaloga`, `EstrategiaComplementaria` y `EstrategiaTriada`, que reemplazan la regla única de `SonCompatibles()`.
 
+**Aseguramiento de Calidad y Pipeline CI:** Se implementa un conjunto de pruebas unitarias utilizando **xUnit** bajo el patrón **Arrange-Act-Assert (AAA)** cubriendo componentes clave del dominio y la infraestructura (`PrendaTests`, `UsuarioTests` y `SqlitePrendaRepositoryTests`). Asimismo, se automatiza la ejecución de dichas pruebas mediante un flujo de **Integración Continua (CI) con GitHub Actions**, asegurando el ciclo de validación de código ante cada cambio en la rama de desarrollo.
+
 
 ### ¿Por qué?
 
@@ -55,6 +57,8 @@ Modelar cada pilar como una entidad y un puerto propios — en vez de forzarlos 
 El reporte de trazabilidad se apoya directamente en las tablas de dominio que ya existen (`PuntoONG`, `LoteDonacion`), por lo que es la pieza más barata de las tres — solo agrega una capa de consulta/agregación, no un nuevo flujo transaccional.
 
 La identidad Kibbe se modela aparte de `TipoCuerpo` porque el propio sistema Kibbe advierte que confundir forma con identidad es el error más común al aplicarlo — son dos preguntas distintas ("qué silueta tengo" vs. "qué líneas me favorecen"). El eje de Saturación es aditivo para no romper `DetectarEstacion()` ni forzar una migración de datos existentes. El Strategy de combinación cromática resuelve el mismo problema de acoplamiento que Factory Method, Observer y Decorator ya resolvieron en ADR-05: una regla única que no puede crecer sin volverse un bloque de condicionales.
+
+Incorporar xUnit y GitHub Actions valida de forma automatizada que las reglas de negocio de los nuevos dominios mantengan la estabilidad del sistema mediante el ciclo de retroalimentación temprana (rojo/verde).
 
 ### Alternativas consideradas
 
