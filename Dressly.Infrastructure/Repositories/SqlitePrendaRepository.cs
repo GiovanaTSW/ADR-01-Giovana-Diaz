@@ -24,13 +24,13 @@ public class SqlitePrendaRepository : IPrendaRepository
         => await _db.Prendas.AsNoTracking().Where(p => p.UsuarioId == usuarioId).ToListAsync();
 
     public async Task<List<Prenda>> GetDisponiblesAsync(int usuarioId)
-        => await _db.Prendas.AsNoTracking().Where(p => p.UsuarioId == usuarioId && !p.EnDesuso).ToListAsync();
+        => await _db.Prendas.AsNoTracking().Where(p => p.UsuarioId == usuarioId && !p.EnDesuso && !p.EsDonada).ToListAsync();
 
     public async Task<List<Prenda>> GetDisponiblesParaDonarAsync(int usuarioId)
     {
         var corte = DateTime.Now.AddDays(-90);
         return await _db.Prendas.AsNoTracking()
-            .Where(p => p.UsuarioId == usuarioId && (p.EnDesuso || p.FechaUltimoUso <= corte))
+            .Where(p => p.UsuarioId == usuarioId && !p.EsDonada && (p.EnDesuso || p.FechaUltimoUso <= corte))
             .ToListAsync();
     }
 

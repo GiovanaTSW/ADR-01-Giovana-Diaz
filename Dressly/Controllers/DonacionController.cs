@@ -20,6 +20,7 @@ public class DonacionController : Controller
 
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    // GET: /Donacion
     public async Task<IActionResult> Index()
     {
         var lotes = await _donaciones.GetLotesAsync(UsuarioId);
@@ -28,14 +29,17 @@ public class DonacionController : Controller
         return View(lotes);
     }
 
+    // GET: /Donacion/Lote
     public async Task<IActionResult> Lote()
     {
+        // Trae las prendas disponibles para donar (filtrando en el servicio las que ya están donadas)
         var enDesuso = await _prendas.GetDisponiblesParaDonarAsync(UsuarioId);
         var puntos = await _donaciones.GetPuntosONGAsync();
         ViewBag.Puntos = puntos;
         return View(enDesuso);
     }
 
+    // POST: /Donacion/AgregarPuntoONG
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AgregarPuntoONG(string nombre, string direccion, string telefono, double? latitud, double? longitud)
@@ -49,13 +53,16 @@ public class DonacionController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Lote(List<int> prendaIds, int puntoONGId)
     {
-        if (!prendaIds.Any())
+        if (prendaIds == null || !prendaIds.Any())
             return RedirectToAction(nameof(Lote));
 
+        // Se ejecuta el método sin intentar guardar un valor de retorno
         await _donaciones.RegistrarDonacionAsync(UsuarioId, prendaIds, puntoONGId);
+
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: /Donacion/Detalle/{id}
     public async Task<IActionResult> Detalle(int id)
     {
         var lote = await _donaciones.GetLoteByIdAsync(id);
@@ -76,6 +83,7 @@ public class DonacionController : Controller
         return View(Tuple.Create(lote, prendas));
     }
 
+    // POST: /Donacion/QuitarPrenda
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> QuitarPrenda(int loteId, int prendaId)
@@ -84,6 +92,7 @@ public class DonacionController : Controller
         return RedirectToAction(nameof(Detalle), new { id = loteId });
     }
 
+    // POST: /Donacion/CancelarLote
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelarLote(int loteId)
@@ -92,6 +101,7 @@ public class DonacionController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // POST: /Donacion/MarcarEntregado
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarcarEntregado(int loteId)

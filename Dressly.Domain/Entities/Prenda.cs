@@ -13,4 +13,10 @@ public class Prenda
     public DateTime FechaUltimoUso { get; set; } = DateTime.Now;
     public bool EnDesuso { get; set; } = false;
     public int UsuarioId { get; set; }
+
+    public bool EsDonada { get; set; } = false;
+
+    public int? LoteId { get; set; }
+
+    public LoteDonacion? Lote { get; set; }
 }

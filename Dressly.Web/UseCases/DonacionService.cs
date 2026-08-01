@@ -56,6 +56,7 @@ public class DonacionService : IDonacionService
 
         await _donaciones.AddLoteAsync(lote);
         await _prendas.MarcarEnDesusoAsync(prendaIds);
+        await _prendas.MarcarComoDonadasAsync(prendaIds, lote.Id);
 
         var evento = new DonacionRegistradaEvent(usuarioId, lote.Id, prendaIds.Count, DateTime.Now);
         foreach (var obs in _donacionObservers)
@@ -69,6 +70,7 @@ public class DonacionService : IDonacionService
 
         await _donaciones.RemovePrendaFromLoteAsync(loteId, prendaId);
         await _prendas.DesmarcarEnDesusoAsync(prendaId);
+        await _prendas.DesmarcarComoDonadaAsync(prendaId);
 
         if (!lote.PrendaIds.Any())
             await _donaciones.DeleteLoteAsync(loteId);
@@ -80,7 +82,10 @@ public class DonacionService : IDonacionService
         if (lote == null) return;
 
         foreach (var prendaId in lote.PrendaIds.ToList())
+        {
             await _prendas.DesmarcarEnDesusoAsync(prendaId);
+            await _prendas.DesmarcarComoDonadaAsync(prendaId);
+        }
 
         await _donaciones.DeleteLoteAsync(loteId);
     }

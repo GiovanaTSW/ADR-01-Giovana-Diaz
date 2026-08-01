@@ -90,4 +90,25 @@ public class PrendaService : IPrendaService
         prenda.EnDesuso = false;
         await _prendas.SaveAsync(todas);
     }
+
+    public async Task MarcarComoDonadasAsync(List<int> prendaIds, int loteId)
+    {
+        var todas = await _prendas.GetAllAsync();
+        foreach (var prenda in todas.Where(p => prendaIds.Contains(p.Id)))
+        {
+            prenda.EsDonada = true;
+            prenda.LoteId = loteId;
+        }
+        await _prendas.SaveAsync(todas);
+    }
+
+    public async Task DesmarcarComoDonadaAsync(int prendaId)
+    {
+        var todas = await _prendas.GetAllAsync();
+        var prenda = todas.FirstOrDefault(p => p.Id == prendaId);
+        if (prenda == null) return;
+        prenda.EsDonada = false;
+        prenda.LoteId = null;
+        await _prendas.SaveAsync(todas);
+    }
 }

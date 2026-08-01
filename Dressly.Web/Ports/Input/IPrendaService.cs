@@ -13,4 +13,6 @@ public interface IPrendaService
     Task ToggleEstadoUsoAsync(int id);
     Task MarcarEnDesusoAsync(List<int> prendaIds);
     Task DesmarcarEnDesusoAsync(int prendaId);
+    Task MarcarComoDonadasAsync(List<int> prendaIds, int loteId);
+    Task DesmarcarComoDonadaAsync(int prendaId);
 }

@@ -32,13 +32,14 @@
                     <p class="small mb-3" style="color:var(--slate);">
                         Selecciona tu tipo de cuerpo según el sistema Kibbe.
                     </p>
-                    <div class="row g-2">
+                    <div class="row g-2 mb-3">
                         @foreach (var kibbe in new[] {
-                            new { Id = 1, Nombre = "Dramatic" },
+                            new { Id = 1, Nombre = "Dramatic"},
                             new { Id = 2, Nombre = "Romantic" },
                             new { Id = 3, Nombre = "Classic" },
                             new { Id = 4, Nombre = "Natural" },
-                            new { Id = 5, Nombre = "Gamine" }
+                            new { Id = 5, Nombre = "Gamine" },
+                            new{ Id = 6, Nombre = "Flamboyant Gamine" },
                         })
                         {
                             <div class="col-6 col-md-4">

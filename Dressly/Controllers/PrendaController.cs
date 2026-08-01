@@ -21,10 +21,15 @@ public class PrendaController : Controller
 
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    // GET: /Prenda (Mi Guardarropa)
     public async Task<IActionResult> Index()
     {
         var prendas = await _prendas.GetPrendasAsync(UsuarioId);
-        return View(prendas);
+
+        // Excluimos las prendas que ya fueron donadas
+        var prendasGuardarropa = prendas.Where(p => !p.EsDonada).ToList();
+
+        return View(prendasGuardarropa);
     }
 
     public async Task<IActionResult> Detalle(int id)
@@ -75,7 +80,10 @@ public class PrendaController : Controller
 
     public async Task<IActionResult> Estadisticas()
     {
-        var prendas = await _prendas.GetPrendasAsync(UsuarioId);
+        var todasLasPrendas = await _prendas.GetPrendasAsync(UsuarioId);
+
+        // Las estadísticas solo toman en cuenta las prendas activas en el guardarropa
+        var prendas = todasLasPrendas.Where(p => !p.EsDonada).ToList();
         var outfits = await _outfits.GetOutfitsAsync(UsuarioId);
 
         var corte = DateTime.Now.AddDays(-90);
