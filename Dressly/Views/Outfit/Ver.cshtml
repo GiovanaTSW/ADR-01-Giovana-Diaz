@@ -3,7 +3,6 @@
     var esSugerencia = ViewBag.EsSugerencia == true;
     ViewData["Title"] = esSugerencia ? "Sugerencia de Outfit" : ViewBag.OutfitNombre ?? "Outfit guardado";
 }
-
 <div class="row justify-content-center">
     <div class="col-lg-7">
 
@@ -30,7 +29,7 @@
             <div class="d-flex gap-3 mb-4 small" style="color:var(--slate);">
                 <span><i class="bi bi-tag me-1"></i> @ViewBag.OutfitOcasion</span>
                 <span>&middot;</span>
-                <span><i class="bi bi-calendar me-1"></i> @ViewBag.OutfitFecha.ToString("dd/MM/yyyy")span>
+                <span><i class="bi bi-calendar me-1"></i> @ViewBag.OutfitFecha?.ToString("dd/MM/yyyy")</span>
             </div>
         }
 
@@ -56,6 +55,66 @@
         }
         else
         {
+            @*
+            <!-- Probador Virtual por Capas CSS con Avatar y Prendas Superpuestas-->
+            <div class="card border-0 shadow-sm mb-4 p-3 text-center">
+                <h6 class="fw-semibold mb-3" style="color:var(--carbon);">Probador Virtual</h6>
+                <div class="virtual-tryon-container position-relative mx-auto rounded-4 overflow-hidden shadow-sm" style="width: 260px; height: 380px; background-color: #fdfbfb; border: 1px solid #eaeaea;">
+
+                    <!-- Capa 1: Avatar / Foto del Perfil Físico -->
+                    @if (!string.IsNullOrEmpty(ViewBag.AvatarUrl as string))
+                    {
+                        <img src="@ViewBag.AvatarUrl" alt="Avatar" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" style="z-index: 1;" />
+                    }
+                    else
+                    {
+                        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted" style="z-index: 1;">
+                            <i class="bi bi-person display-4 text-black-50"></i>
+                            <small class="mt-2" style="font-size: 0.7rem;">Sube tu foto en tu perfil</small>
+                        </div>
+                    }
+
+                    <!-- Capa 2: Prenda Superior -->
+                    @{
+                        var superior = Model.FirstOrDefault(p => p.Categoria?.ToLower() == "superior");
+                    }
+                    @if (superior != null && !string.IsNullOrEmpty(superior.FotoUrl))
+                    {
+                        <img src="@superior.FotoUrl" alt="Superior" class="position-absolute w-75" style="top: 22%; left: 12.5%; z-index: 2; pointer-events: none;" />
+                    }
+
+                    <!-- Capa 3: Prenda Inferior -->
+                    @{
+                        var inferior = Model.FirstOrDefault(p => p.Categoria?.ToLower() == "inferior");
+                    }
+                    @if (inferior != null && !string.IsNullOrEmpty(inferior.FotoUrl))
+                    {
+                        <img src="@inferior.FotoUrl" alt="Inferior" class="position-absolute w-60" style="top: 48%; left: 20%; z-index: 2; pointer-events: none;" />
+                    }
+
+                    <!-- Capa 4: Calzado -->
+                    @{
+                        var calzado = Model.FirstOrDefault(p => p.Categoria?.ToLower() == "calzado");
+                    }
+                    @if (calzado != null && !string.IsNullOrEmpty(calzado.FotoUrl))
+                    {
+                        <img src="@calzado.FotoUrl" alt="Calzado" class="position-absolute w-40" style="top: 78%; left: 30%; z-index: 2; pointer-events: none;" />
+                    }
+
+                    <!-- Capa 5: Accesorios -->
+                    @{
+                        var accesorio = Model.FirstOrDefault(p => p.Categoria?.ToLower() == "accesorio");
+                    }
+                    @if (accesorio != null && !string.IsNullOrEmpty(accesorio.FotoUrl))
+                    {
+                        <img src="@accesorio.FotoUrl" alt="Accesorio" class="position-absolute w-35" style="top: 15%; left: 32.5%; z-index: 3; pointer-events: none;" />
+                    }
+                </div>
+            </div>
+*@
+        
+
+            <!-- Listado de tarjetas de prendas -->
             <div class="row g-3 mb-4">
                 @foreach (var prenda in Model)
                 {
@@ -65,7 +124,7 @@
                             {
                                 <img src="@prenda.FotoUrl" alt="@prenda.Nombre"
                                      class="card-img-top img-editorial"
-                                     style="height:160px;" />
+                                     style="height:160px; object-fit:contain;" />
                             }
                             else
                             {

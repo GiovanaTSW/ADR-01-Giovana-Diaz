@@ -18,8 +18,4 @@
     <ProjectReference Include="..\Dressly.Infrastructure\Dressly.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\Visualizacion\" />
-  </ItemGroup>
-
 </Project>
