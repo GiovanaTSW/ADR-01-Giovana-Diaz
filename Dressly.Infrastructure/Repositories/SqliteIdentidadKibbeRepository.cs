@@ -20,5 +20,10 @@ namespace Dressly.Infrastructure.Repositories
         {
             return await _context.IdentidadesKibbe.FirstOrDefaultAsync(k => k.Id == id);
         }
+
+        public async Task<List<IdentidadKibbeInfo>> GetAllAsync()
+        {
+            return await _context.IdentidadesKibbe.ToListAsync();
+        }
     }
 }

@@ -8,5 +8,6 @@ namespace Dressly.Application.Ports.Output
     public interface IIdentidadKibbeRepository
     {
         Task<IdentidadKibbeInfo?> GetByIdAsync(int id);
+        Task<List<IdentidadKibbeInfo>> GetAllAsync();
     }
 }

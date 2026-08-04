@@ -9,4 +9,5 @@ public class PerfilViewModel
     public ColorimetriaInfo? ColorimetriaInfo { get; set; }
     public ContrasteInfo? ContrasteInfo { get; set; }
     public IdentidadKibbeInfo? KibbeInfo { get; set; }
+    public string? KibbeInfoImagen { get; set; }
 }

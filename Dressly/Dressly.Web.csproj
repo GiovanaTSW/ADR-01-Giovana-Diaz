@@ -13,9 +13,21 @@
   </Target>
 
   <ItemGroup>
+    <None Include="wwwroot\img\tipos.png" />
+    <None Include="wwwroot\img\todos.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Dressly.Domain\Dressly.Domain.csproj" />
     <ProjectReference Include="..\Dressly.Web\Dressly.Application.csproj" />
     <ProjectReference Include="..\Dressly.Infrastructure\Dressly.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
